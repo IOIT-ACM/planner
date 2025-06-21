@@ -44,6 +44,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const customDialogMessage = document.getElementById("custom-dialog-message");
   const customDialogButtons = document.getElementById("custom-dialog-buttons");
 
+  const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+  const mobileSidebar = document.getElementById("mobile-sidebar");
+  const sidebarOverlay = document.getElementById("sidebar-overlay");
+
+  const exportDataBtnMobile = document.getElementById("export-data-btn-mobile");
+  const importDataBtnMobile = document.getElementById("import-data-btn-mobile");
+  const clearAllDataBtnMobile = document.getElementById(
+    "clear-all-data-btn-mobile",
+  );
+
   let events = [];
   let currentDay = 1;
   let maxDays = 1;
@@ -228,6 +238,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderTimeline() {
+    // START OF MODIFIED SECTION
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    // END OF MODIFIED SECTION
+
     const pixelsPerMinute = timelineScale / 60;
     const timelineDurationHours = TIMELINE_END_HOUR - TIMELINE_START_HOUR;
     const totalTimelineWidth = timelineDurationHours * timelineScale;
@@ -239,20 +253,36 @@ document.addEventListener("DOMContentLoaded", () => {
     for (let hour = TIMELINE_START_HOUR; hour <= TIMELINE_END_HOUR; hour++) {
       const tick = document.createElement("div");
       tick.classList.add("time-tick");
-      if (hour % 1 === 0) tick.classList.add("major");
       const tickPosition = (hour - TIMELINE_START_HOUR) * timelineScale;
       tick.style.left = `${tickPosition}px`;
 
-      const label = document.createElement("span");
-      label.textContent = formatTimeForDisplay(
-        `${String(hour).padStart(2, "0")}:00`,
-      );
-      tick.appendChild(label);
+      // START OF MODIFIED SECTION
+      let showLabelAndMajor = false;
+      if (isMobile) {
+        if (hour % 3 === 0) {
+          showLabelAndMajor = true;
+        }
+      } else {
+        // Desktop: show label and major tick for every hour
+        showLabelAndMajor = true;
+      }
+
+      if (showLabelAndMajor) {
+        tick.classList.add("major");
+        const label = document.createElement("span");
+        label.textContent = formatTimeForDisplay(
+          `${String(hour).padStart(2, "0")}:00`,
+        );
+        tick.appendChild(label);
+      }
+      // END OF MODIFIED SECTION
+
       timeRuler.appendChild(tick);
 
+      // Half-hour ticks (these are always minor and unlabeled)
       if (hour < TIMELINE_END_HOUR) {
         const halfHourTick = document.createElement("div");
-        halfHourTick.classList.add("time-tick");
+        halfHourTick.classList.add("time-tick"); // This will be a minor tick by CSS
         const halfHourPosition = tickPosition + timelineScale / 2;
         halfHourTick.style.left = `${halfHourPosition}px`;
         timeRuler.appendChild(halfHourTick);
@@ -373,9 +403,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function toggleEventDetails(listItem) {
     const detailsDiv = listItem.querySelector(".event-details");
-    const chevronBtn = listItem.querySelector(
-      '.event-actions button[title="Toggle Details"]',
-    );
+    const chevronBtn = listItem.querySelector(".event-list-chevron-btn");
     if (!detailsDiv || !chevronBtn) return;
 
     const isExpanded = chevronBtn.dataset.expanded === "true";
@@ -402,6 +430,14 @@ document.addEventListener("DOMContentLoaded", () => {
         li.classList.add("event-list-item");
         li.dataset.eventId = event.id;
 
+        const chevronBtn = document.createElement("button");
+        chevronBtn.innerHTML = "▼";
+        chevronBtn.title = "Toggle Details";
+        chevronBtn.dataset.expanded = "false";
+        chevronBtn.classList.add("event-list-chevron-btn");
+        chevronBtn.addEventListener("click", () => toggleEventDetails(li));
+        li.appendChild(chevronBtn);
+
         const colorInput = document.createElement("input");
         colorInput.type = "color";
         colorInput.classList.add("event-color-dot");
@@ -422,19 +458,6 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
         li.appendChild(colorInput);
-
-        const timeSpan = document.createElement("span");
-        timeSpan.classList.add("event-time");
-        timeSpan.textContent = `${formatTimeForDisplay(
-          event.startTime,
-        )} - ${formatTimeForDisplay(event.endTime)}`;
-        li.appendChild(timeSpan);
-
-        const titleSpan = document.createElement("span");
-        titleSpan.classList.add("event-title");
-        titleSpan.textContent = event.title;
-        titleSpan.addEventListener("click", () => toggleEventDetails(li));
-        li.appendChild(titleSpan);
 
         const actionsSpan = document.createElement("span");
         actionsSpan.classList.add("event-actions");
@@ -460,15 +483,24 @@ document.addEventListener("DOMContentLoaded", () => {
           );
         });
         actionsSpan.appendChild(deleteListBtn);
-
-        const chevronBtn = document.createElement("button");
-        chevronBtn.innerHTML = "▼";
-        chevronBtn.title = "Toggle Details";
-        chevronBtn.dataset.expanded = "false";
-        chevronBtn.addEventListener("click", () => toggleEventDetails(li));
-        actionsSpan.appendChild(chevronBtn);
-
         li.appendChild(actionsSpan);
+
+        const titleTimeWrapper = document.createElement("div");
+        titleTimeWrapper.classList.add("event-title-time-wrapper");
+
+        const titleSpan = document.createElement("span");
+        titleSpan.classList.add("event-title");
+        titleSpan.textContent = event.title;
+        titleSpan.addEventListener("click", () => toggleEventDetails(li));
+        titleTimeWrapper.appendChild(titleSpan);
+
+        const timeSpan = document.createElement("span");
+        timeSpan.classList.add("event-time");
+        timeSpan.textContent = `${formatTimeForDisplay(
+          event.startTime,
+        )} - ${formatTimeForDisplay(event.endTime)}`;
+        titleTimeWrapper.appendChild(timeSpan);
+        li.appendChild(titleTimeWrapper);
 
         const detailsDiv = document.createElement("div");
         detailsDiv.classList.add("event-details", "hidden");
@@ -915,6 +947,7 @@ document.addEventListener("DOMContentLoaded", () => {
               saveEvents();
               updateDaySelectOptions();
               renderAll();
+              closeMobileSidebar();
             },
           );
         } else {
@@ -943,6 +976,14 @@ document.addEventListener("DOMContentLoaded", () => {
   exportDataBtn.addEventListener("click", handleExportData);
   importDataBtn.addEventListener("click", () => importFileInput.click());
   importFileInput.addEventListener("change", handleImportData);
+
+  exportDataBtnMobile.addEventListener("click", () => {
+    handleExportData();
+    closeMobileSidebar();
+  });
+  importDataBtnMobile.addEventListener("click", () => {
+    importFileInput.click();
+  });
 
   clearDayBtn.addEventListener("click", () => {
     const isDeleteAction = clearDayBtn.textContent === "Delete Day";
@@ -985,7 +1026,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  clearAllDataBtn.addEventListener("click", () => {
+  function handleClearAllData() {
     showCustomConfirm(
       "Do you really want to delete ALL data for ALL days? This action cannot be undone and will reset the planner.",
       "Clear All Data",
@@ -996,10 +1037,25 @@ document.addEventListener("DOMContentLoaded", () => {
         saveEvents();
         updateDaySelectOptions();
         renderAll();
-        showCustomAlert("All data has been cleared.", "Success");
+        closeMobileSidebar();
       },
     );
-  });
+  }
+
+  clearAllDataBtn.addEventListener("click", handleClearAllData);
+  clearAllDataBtnMobile.addEventListener("click", handleClearAllData);
+
+  function openMobileSidebar() {
+    mobileSidebar.classList.add("open");
+    sidebarOverlay.classList.add("open");
+  }
+  function closeMobileSidebar() {
+    mobileSidebar.classList.remove("open");
+    sidebarOverlay.classList.remove("open");
+  }
+
+  mobileMenuBtn.addEventListener("click", openMobileSidebar);
+  sidebarOverlay.addEventListener("click", closeMobileSidebar);
 
   function renderAll() {
     renderDayTabs();

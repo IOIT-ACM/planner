@@ -31,16 +31,30 @@
         <button id="add-event-btn" class="icon-btn" title="Add New Event">
           +
         </button>
+        <button id="mobile-menu-btn" class="icon-btn" title="Menu">☰</button>
       </div>
     </header>
+
+    <nav id="mobile-sidebar">
+      <div class="data-management-controls">
+        <button id="export-data-btn-mobile" title="Export Data">Export</button>
+        <button id="import-data-btn-mobile" title="Import Data">Import</button>
+        <button id="clear-all-data-btn-mobile" title="Clear All Data">
+          Clear All
+        </button>
+      </div>
+    </nav>
+    <div id="sidebar-overlay"></div>
 
     <main>
       <div class="controls-panel">
         <div id="day-tabs-container" class="day-selector"></div>
         <div class="zoom-controls">
-          <button id="zoom-out-btn" title="Zoom Out">-</button>
-          <span>Zoom</span>
-          <button id="zoom-in-btn" title="Zoom In">+</button>
+          <div class="zoom-controls-mobile">
+            <button id="zoom-out-btn" title="Zoom Out">-</button>
+            <p>Zoom</p>
+            <button id="zoom-in-btn" title="Zoom In">+</button>
+          </div>
           <button id="fit-timeline-btn" title="Fit Timeline to View">
             Fit
           </button>

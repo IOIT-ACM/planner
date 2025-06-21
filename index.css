@@ -46,6 +46,9 @@ header {
     background-color 0.3s ease,
     border-color 0.3s ease,
     box-shadow 0.3s ease;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .logo-title {
@@ -97,7 +100,11 @@ header h1 {
 .icon-btn:hover {
   background-color: var(--color-brown);
   color: var(--color-cream);
-  transform: scale(1.1);
+}
+
+#mobile-menu-btn {
+  display: none;
+  font-size: 24px;
 }
 
 main {
@@ -154,7 +161,6 @@ main {
 #add-day-btn:hover {
   background-color: var(--color-brown);
   color: var(--color-cream);
-  transform: translateY(-1px);
 }
 
 .day-tab.active {
@@ -186,7 +192,6 @@ main {
 .zoom-controls button:hover {
   background-color: var(--color-brown);
   color: var(--color-cream);
-  transform: scale(1.05);
 }
 .zoom-controls span {
   font-size: 0.9em;
@@ -216,7 +221,6 @@ main {
 .data-management-controls button:hover {
   background-color: var(--color-brown);
   color: var(--color-cream);
-  transform: scale(1.05);
 }
 
 #clear-all-data-btn {
@@ -410,7 +414,6 @@ main {
   background-color: var(--color-brown);
   border-color: var(--color-brown);
   color: var(--color-cream);
-  transform: scale(1.05);
 }
 
 #event-list {
@@ -453,9 +456,6 @@ main {
     border-color 0.2s ease,
     transform 0.1s ease;
 }
-.event-color-dot:hover {
-  transform: scale(1.1);
-}
 .event-color-dot::-webkit-color-swatch-wrapper {
   padding: 0;
 }
@@ -491,7 +491,8 @@ main {
   color: var(--color-sand);
 }
 
-.event-actions button {
+.event-actions button,
+.event-list-chevron-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -502,9 +503,9 @@ main {
     color 0.2s ease,
     transform 0.1s ease;
 }
-.event-actions button:hover {
+.event-actions button:hover,
+.event-list-chevron-btn:hover {
   color: var(--color-sand);
-  transform: scale(1.1);
 }
 
 .event-details {
@@ -557,11 +558,10 @@ dialog {
   box-shadow: var(--shadow-lg);
   width: 80%;
   max-width: 500px;
-  max-height: 75vh;
+  max-height: 70vh;
   background-color: var(--color-cream);
   color: var(--color-olive-dark);
   opacity: 0;
-  transform: scale(0.95) translateY(10px);
   transition:
     opacity 0.25s ease,
     transform 0.25s ease,
@@ -572,7 +572,6 @@ dialog {
 
 dialog[open] {
   opacity: 1;
-  transform: scale(1) translateY(0);
 }
 
 dialog::backdrop {
@@ -651,7 +650,6 @@ dialog::backdrop {
     transform 0.1s ease;
 }
 .dialog-buttons button:hover {
-  transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
 
@@ -696,7 +694,6 @@ dialog::backdrop {
   white-space: nowrap;
   box-shadow: var(--shadow-tooltip);
   opacity: 0;
-  transform: scale(0.95);
   transition:
     opacity 0.15s ease,
     transform 0.15s ease;
@@ -704,10 +701,8 @@ dialog::backdrop {
 
 #timeline-tooltip:not(.hidden) {
   opacity: 1;
-  transform: scale(1);
 }
 
-/* Custom Dialog Styles */
 #custom-dialog {
   max-width: 400px;
   max-height: auto;
@@ -750,4 +745,193 @@ dialog::backdrop {
 #custom-dialog .dialog-buttons button.alert-ok-btn:hover {
   background-color: var(--color-brown);
   color: var(--color-cream);
+}
+
+#mobile-sidebar {
+  position: fixed;
+  top: 0;
+  left: -280px;
+  width: 250px;
+  height: 100%;
+  background-color: var(--color-cream);
+  box-shadow: var(--shadow-lg);
+  z-index: 1001;
+  transition: left 0.3s ease-in-out;
+  padding: 10px;
+  padding-top: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  border-right: 1px solid var(--color-olive-medium);
+}
+
+#mobile-sidebar.open {
+  left: 0;
+}
+
+#mobile-sidebar .data-management-controls {
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+#mobile-sidebar .data-management-controls button {
+  width: 100%;
+  text-align: left;
+  padding: 10px 15px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+}
+
+#sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--backdrop-overlay);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  pointer-events: none;
+}
+
+#sidebar-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.event-title-time-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.zoom-controls-mobile p {
+  padding: 0;
+  margin: 0;
+}
+.zoom-controls-mobile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  header h1 {
+    font-size: 1em;
+  }
+  .acm-logo img {
+    width: 25px;
+    height: 25px;
+  }
+  .logo-title {
+    gap: 8px;
+  }
+
+  .event-actions button {
+    display: none;
+  }
+
+  .header-actions .data-management-controls {
+    display: none;
+  }
+  #mobile-menu-btn {
+    display: flex;
+  }
+
+  .controls-panel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  .day-selector {
+    max-width: 100%;
+    padding-bottom: 10px;
+  }
+  .zoom-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .zoom-controls span {
+    display: none;
+  }
+
+  #event-list-panel h2 {
+    font-size: 1.1em;
+  }
+
+  .event-list-item {
+    padding: 12px 8px;
+    align-items: flex-start;
+  }
+
+  .event-list-chevron-btn {
+    order: 1;
+    padding: 8px 5px;
+    margin-right: 5px;
+    align-self: center;
+  }
+  .event-color-dot {
+    order: 2;
+    margin-right: 8px;
+    align-self: center;
+  }
+  .event-actions {
+    order: 3;
+    display: flex;
+    flex-direction: row;
+    gap: 0px;
+    margin-right: 8px;
+    align-self: center;
+  }
+  .event-actions button {
+    padding: 6px;
+  }
+
+  .event-title-time-wrapper {
+    order: 4;
+    flex-grow: 1;
+    min-width: 0;
+  }
+  .event-title {
+    font-size: 1em;
+    font-weight: 600;
+    margin-right: 0;
+    margin-bottom: 2px;
+    word-break: break-word;
+  }
+  .event-time {
+    font-size: 0.8em;
+    margin-right: 0;
+  }
+  .event-details {
+    order: 5;
+    margin-left: 0;
+    font-size: 0.8em;
+  }
+  .event-details table td:first-child {
+    width: 80px;
+  }
+
+  dialog {
+    width: 90%;
+    max-height: 85vh;
+    padding: 15px;
+  }
+  #event-form label {
+    font-size: 0.85em;
+  }
+  #event-form input[type="text"],
+  #event-form input[type="time"],
+  #event-form input[type="color"],
+  #event-form select,
+  #event-form textarea {
+    padding: 7px;
+    font-size: 0.85em;
+  }
+  .dialog-buttons button {
+    padding: 7px 12px;
+    font-size: 0.9em;
+  }
 }
