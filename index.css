@@ -39,7 +39,6 @@ header h1 {
 }
 
 .header-actions {
-  /* Container for buttons in header */
   display: flex;
   align-items: center;
   gap: 10px;
@@ -88,6 +87,10 @@ main {
 .day-selector {
   display: flex;
   gap: 5px;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 5px;
+  max-width: calc(100% - 250px);
 }
 
 .day-tab,
@@ -98,6 +101,7 @@ main {
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
+  flex-shrink: 0;
 }
 #add-day-btn {
   font-weight: bold;
@@ -121,10 +125,9 @@ main {
   background-color: #f8f9fa;
   cursor: pointer;
   border-radius: 4px;
-  font-size: 0.9em; /* Ensure Fit button has same font size */
+  font-size: 0.9em;
 }
 .zoom-controls button:hover {
-  /* Hover for all zoom buttons */
   background-color: #e9ecef;
 }
 .zoom-controls span {
@@ -148,6 +151,16 @@ main {
 }
 .data-management-controls button:hover {
   background-color: #e9ecef;
+}
+
+#clear-all-data-btn {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+#clear-all-data-btn:hover {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-color: #c82333;
 }
 
 #timeline-container-wrapper {
@@ -271,12 +284,35 @@ main {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+.event-list-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
 #event-list-panel h2 {
   margin-top: 0;
   font-size: 1.2em;
   color: #333;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 8px;
+  margin-bottom: 0;
+}
+
+#clear-day-btn {
+  padding: 6px 10px;
+  border: 1px solid #dc3545;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #dc3545;
+}
+#clear-day-btn:hover {
+  background-color: #f8d7da;
+  border-color: #c82333;
+  color: #721c24;
 }
 
 #event-list {
@@ -297,8 +333,7 @@ main {
 }
 
 .event-color-dot {
-  /* Now an input type=color */
-  width: 20px; /* Increased size for easier interaction */
+  width: 20px;
   height: 20px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -309,19 +344,18 @@ main {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-color: transparent; /* Allows browser to show color swatch */
+  background-color: transparent;
 }
 .event-color-dot::-webkit-color-swatch-wrapper {
   padding: 0;
 }
 .event-color-dot::-webkit-color-swatch {
   border: none;
-  border-radius: 3px; /* Match parent */
+  border-radius: 3px;
 }
 .event-color-dot::-moz-color-swatch {
-  /* For Firefox */
   border: none;
-  border-radius: 3px; /* Match parent */
+  border-radius: 3px;
   width: 100%;
   height: 100%;
 }
@@ -337,7 +371,7 @@ main {
   font-weight: 500;
   flex-grow: 1;
   margin-right: 5px;
-  cursor: pointer; /* Indicate title is clickable for details */
+  cursor: pointer;
 }
 .event-title:hover {
   text-decoration: underline;
@@ -380,6 +414,7 @@ dialog {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   width: 80%;
   max-width: 500px;
+  max-height: 75vh;
 }
 
 dialog::backdrop {

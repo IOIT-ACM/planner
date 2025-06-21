@@ -29,11 +29,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const dayTabsContainer = document.getElementById("day-tabs-container");
   const zoomInBtn = document.getElementById("zoom-in-btn");
   const zoomOutBtn = document.getElementById("zoom-out-btn");
-  const fitTimelineBtn = document.getElementById("fit-timeline-btn"); // New Fit Button
+  const fitTimelineBtn = document.getElementById("fit-timeline-btn");
 
   const exportDataBtn = document.getElementById("export-data-btn");
   const importDataBtn = document.getElementById("import-data-btn");
   const importFileInput = document.getElementById("import-file-input");
+
+  const clearDayBtn = document.getElementById("clear-day-btn");
+  const clearAllDataBtn = document.getElementById("clear-all-data-btn");
 
   let events = [];
   let currentDay = 1;
@@ -58,7 +61,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function formatMinutesToTime(totalMinutes) {
     const hours = Math.floor(totalMinutes / 60) % 24;
     const minutes = totalMinutes % 60;
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+      2,
+      "0",
+    )}`;
   }
 
   function formatTimeForDisplay(timeStr24hr) {
@@ -82,6 +88,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const parsedData = JSON.parse(storedData);
       events = parsedData.events || [];
       maxDays = parsedData.maxDays || 1;
+      if (maxDays === 0) maxDays = 1;
+      currentDay = Math.min(currentDay, maxDays);
+      currentDay = Math.max(1, currentDay);
     }
     updateDaySelectOptions();
   }
@@ -128,8 +137,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function getMinTimelineScale() {
     const wrapperWidth = timelineContainerWrapper.clientWidth;
     const timelineDurationHours = TIMELINE_END_HOUR - TIMELINE_START_HOUR;
-    if (timelineDurationHours <= 0) return 30; // Default fallback
-    return Math.max(10, wrapperWidth / timelineDurationHours); // Ensure it's not too small
+    if (timelineDurationHours <= 0) return 30;
+    return Math.max(10, wrapperWidth / timelineDurationHours);
   }
 
   function renderTimeline() {
@@ -204,7 +213,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
       if (!placed) {
-        eventBlock.style.top = `${lanes.length * (eventHeight + eventMargin)}px`;
+        eventBlock.style.top = `${
+          lanes.length * (eventHeight + eventMargin)
+        }px`;
         lanes.push(endMinutes);
       }
 
@@ -224,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
       timelineEventsContainer.appendChild(eventBlock);
       maxBottom = Math.max(
         maxBottom,
-        parseFloat(eventBlock.style.top) + eventHeight,
+        parseFloat(eventBlock.style.top) + eventHeight + eventMargin,
       );
     });
     timelineEventsContainer.style.height = `${maxBottom}px`;
@@ -252,7 +263,9 @@ document.addEventListener("DOMContentLoaded", () => {
     r = Math.floor(r * (1 - percent / 100));
     g = Math.floor(g * (1 - percent / 100));
     b = Math.floor(b * (1 - percent / 100));
-    return `#${[r, g, b].map((x) => Math.max(0, Math.min(255, x)).toString(16).padStart(2, "0")).join("")}`;
+    return `#${[r, g, b]
+      .map((x) => Math.max(0, Math.min(255, x)).toString(16).padStart(2, "0"))
+      .join("")}`;
   }
 
   function toggleEventDetails(listItem) {
@@ -265,7 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const isExpanded = chevronBtn.dataset.expanded === "true";
     detailsDiv.classList.toggle("hidden", isExpanded);
     chevronBtn.innerHTML = isExpanded ? "▼" : "▲";
-    chevronBtn.dataset.expanded = !isExpanded;
+    chevronBtn.dataset.expanded = String(!isExpanded);
   }
 
   function renderEventList() {
@@ -280,85 +293,104 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (dayEvents.length === 0) {
       eventListUl.innerHTML = "<li>No events scheduled for this day.</li>";
-      return;
-    }
+    } else {
+      dayEvents.forEach((event) => {
+        const li = document.createElement("li");
+        li.classList.add("event-list-item");
+        li.dataset.eventId = event.id;
 
-    dayEvents.forEach((event) => {
-      const li = document.createElement("li");
-      li.classList.add("event-list-item");
-      li.dataset.eventId = event.id;
-
-      const colorInput = document.createElement("input"); // Changed to input
-      colorInput.type = "color";
-      colorInput.classList.add("event-color-dot");
-      colorInput.value = event.color;
-      colorInput.addEventListener("input", (e) => {
-        const targetEvent = events.find((ev) => ev.id === event.id);
-        if (targetEvent) {
-          targetEvent.color = e.target.value;
-          saveEvents();
-          renderTimeline(); // Re-render timeline for color change
-          // No need to re-render full list, just update this item's block color if needed
-          const timelineBlock = timelineEventsContainer.querySelector(
-            `.event-block[data-event-id="${event.id}"]`,
-          );
-          if (timelineBlock) {
-            timelineBlock.style.backgroundColor = e.target.value;
-            timelineBlock.style.borderColor = darkenColor(e.target.value, 20);
+        const colorInput = document.createElement("input");
+        colorInput.type = "color";
+        colorInput.classList.add("event-color-dot");
+        colorInput.value = event.color;
+        colorInput.addEventListener("input", (e) => {
+          const targetEvent = events.find((ev) => ev.id === event.id);
+          if (targetEvent) {
+            targetEvent.color = e.target.value;
+            saveEvents();
+            renderTimeline();
+            const timelineBlock = timelineEventsContainer.querySelector(
+              `.event-block[data-event-id="${event.id}"]`,
+            );
+            if (timelineBlock) {
+              timelineBlock.style.backgroundColor = e.target.value;
+              timelineBlock.style.borderColor = darkenColor(e.target.value, 20);
+            }
           }
-        }
+        });
+        li.appendChild(colorInput);
+
+        const timeSpan = document.createElement("span");
+        timeSpan.classList.add("event-time");
+        timeSpan.textContent = `${formatTimeForDisplay(
+          event.startTime,
+        )} - ${formatTimeForDisplay(event.endTime)}`;
+        li.appendChild(timeSpan);
+
+        const titleSpan = document.createElement("span");
+        titleSpan.classList.add("event-title");
+        titleSpan.textContent = event.title;
+        titleSpan.addEventListener("click", () => toggleEventDetails(li));
+        li.appendChild(titleSpan);
+
+        const actionsSpan = document.createElement("span");
+        actionsSpan.classList.add("event-actions");
+
+        const editBtn = document.createElement("button");
+        editBtn.innerHTML = "✏️";
+        editBtn.title = "Edit Event";
+        editBtn.addEventListener("click", () => openEditDialog(event.id));
+        actionsSpan.appendChild(editBtn);
+
+        const chevronBtn = document.createElement("button");
+        chevronBtn.innerHTML = "▼";
+        chevronBtn.title = "Toggle Details";
+        chevronBtn.dataset.expanded = "false";
+        chevronBtn.addEventListener("click", () => toggleEventDetails(li));
+        actionsSpan.appendChild(chevronBtn);
+
+        li.appendChild(actionsSpan);
+
+        const detailsDiv = document.createElement("div");
+        detailsDiv.classList.add("event-details", "hidden");
+        detailsDiv.innerHTML = `
+                    <p><strong>Category:</strong> ${event.category || "N/A"}</p>
+                    <p><strong>Speaker:</strong> ${event.speaker || "N/A"}</p>
+                    <p><strong>Location:</strong> ${event.location || "N/A"}</p>
+                    <p><strong>Notes:</strong> ${event.notes || "N/A"}</p>
+                    <p><strong>Attachments:</strong> ${
+                      event.attachments || "N/A"
+                    }</p>
+                `;
+        li.appendChild(detailsDiv);
+        eventListUl.appendChild(li);
       });
-      li.appendChild(colorInput);
+    }
+    updateClearDayButtonState();
+  }
 
-      const timeSpan = document.createElement("span");
-      timeSpan.classList.add("event-time");
-      timeSpan.textContent = `${formatTimeForDisplay(event.startTime)} - ${formatTimeForDisplay(event.endTime)}`;
-      li.appendChild(timeSpan);
+  function updateClearDayButtonState() {
+    const dayEvents = events.filter((event) => event.day === currentDay);
+    clearDayBtn.classList.remove("hidden");
 
-      const titleSpan = document.createElement("span");
-      titleSpan.classList.add("event-title");
-      titleSpan.textContent = event.title;
-      titleSpan.addEventListener("click", () => toggleEventDetails(li)); // Click title to toggle
-      li.appendChild(titleSpan);
-
-      const actionsSpan = document.createElement("span");
-      actionsSpan.classList.add("event-actions");
-
-      const editBtn = document.createElement("button");
-      editBtn.innerHTML = "✏️";
-      editBtn.title = "Edit Event";
-      editBtn.addEventListener("click", () => openEditDialog(event.id));
-      actionsSpan.appendChild(editBtn);
-
-      const chevronBtn = document.createElement("button");
-      chevronBtn.innerHTML = "▼";
-      chevronBtn.title = "Toggle Details";
-      chevronBtn.dataset.expanded = "false";
-      chevronBtn.addEventListener("click", () => toggleEventDetails(li)); // Chevron also toggles
-      actionsSpan.appendChild(chevronBtn);
-
-      li.appendChild(actionsSpan);
-
-      const detailsDiv = document.createElement("div");
-      detailsDiv.classList.add("event-details", "hidden");
-      detailsDiv.innerHTML = `
-                <p><strong>Category:</strong> ${event.category || "N/A"}</p>
-                <p><strong>Speaker:</strong> ${event.speaker || "N/A"}</p>
-                <p><strong>Location:</strong> ${event.location || "N/A"}</p>
-                <p><strong>Notes:</strong> ${event.notes || "N/A"}</p>
-                <p><strong>Attachments:</strong> ${event.attachments || "N/A"}</p>
-            `;
-      li.appendChild(detailsDiv);
-      eventListUl.appendChild(li);
-    });
+    if (currentDay === 1 && dayEvents.length === 0) {
+      clearDayBtn.classList.add("hidden");
+    } else if (dayEvents.length === 0) {
+      clearDayBtn.textContent = "Delete Day";
+      clearDayBtn.title = `Delete Day ${currentDay}`;
+    } else {
+      clearDayBtn.textContent = "Clear Day";
+      clearDayBtn.title = `Clear Events for Day ${currentDay}`;
+    }
   }
 
   function openAddDialog() {
     dialogTitle.textContent = "Add Event";
     eventForm.reset();
     eventIdInput.value = "";
+    updateDaySelectOptions();
     eventDaySelect.value = currentDay;
-    eventColorInput.value = "#3498db"; // Default color for new events
+    eventColorInput.value = "#3498db";
     deleteEventBtn.style.display = "none";
     eventDialog.showModal();
   }
@@ -370,6 +402,7 @@ document.addEventListener("DOMContentLoaded", () => {
     dialogTitle.textContent = "Edit Event";
     eventIdInput.value = event.id;
     eventTitleInput.value = event.title;
+    updateDaySelectOptions();
     eventDaySelect.value = event.day;
     eventStartTimeInput.value = event.startTime;
     eventEndTimeInput.value = event.endTime;
@@ -433,7 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
   cancelEventBtn.addEventListener("click", () => eventDialog.close());
 
   zoomInBtn.addEventListener("click", () => {
-    timelineScale = Math.min(300, timelineScale + 20); // Max zoom in
+    timelineScale = Math.min(300, timelineScale + 20);
     renderTimeline();
   });
 
@@ -444,8 +477,86 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   fitTimelineBtn.addEventListener("click", () => {
-    timelineScale = getMinTimelineScale();
-    renderTimeline();
+    const dayEvents = events.filter((event) => event.day === currentDay);
+    const wrapperWidth = timelineContainerWrapper.clientWidth;
+
+    if (dayEvents.length === 0) {
+      timelineScale = getMinTimelineScale();
+      renderTimeline();
+      timelineContainerWrapper.scrollLeft = 0;
+    } else {
+      let minEventStartMinutes = TIMELINE_END_HOUR * 60;
+      let maxEventEndMinutes = TIMELINE_START_HOUR * 60;
+
+      dayEvents.forEach((event) => {
+        minEventStartMinutes = Math.min(
+          minEventStartMinutes,
+          parseTimeToMinutes(event.startTime),
+        );
+        maxEventEndMinutes = Math.max(
+          maxEventEndMinutes,
+          parseTimeToMinutes(event.endTime),
+        );
+      });
+
+      const FIT_PADDING_MINUTES = 30;
+      const MIN_FIT_VIEW_DURATION_MINUTES = 60;
+      const FULL_DAY_MINUTES = (TIMELINE_END_HOUR - TIMELINE_START_HOUR) * 60;
+
+      const eventActualSpanMinutes = maxEventEndMinutes - minEventStartMinutes;
+
+      let targetViewDurationMinutes =
+        eventActualSpanMinutes + 2 * FIT_PADDING_MINUTES;
+      targetViewDurationMinutes = Math.max(
+        targetViewDurationMinutes,
+        MIN_FIT_VIEW_DURATION_MINUTES,
+      );
+      targetViewDurationMinutes = Math.min(
+        targetViewDurationMinutes,
+        FULL_DAY_MINUTES,
+      );
+
+      const eventCenterMinutes =
+        (minEventStartMinutes + maxEventEndMinutes) / 2;
+
+      let viewStartMinutes = eventCenterMinutes - targetViewDurationMinutes / 2;
+      let viewEndMinutes = eventCenterMinutes + targetViewDurationMinutes / 2;
+
+      if (viewStartMinutes < TIMELINE_START_HOUR * 60) {
+        viewStartMinutes = TIMELINE_START_HOUR * 60;
+        viewEndMinutes = Math.min(
+          TIMELINE_END_HOUR * 60,
+          viewStartMinutes + targetViewDurationMinutes,
+        );
+      }
+      if (viewEndMinutes > TIMELINE_END_HOUR * 60) {
+        viewEndMinutes = TIMELINE_END_HOUR * 60;
+        viewStartMinutes = Math.max(
+          TIMELINE_START_HOUR * 60,
+          viewEndMinutes - targetViewDurationMinutes,
+        );
+      }
+
+      const finalViewDurationMinutes = viewEndMinutes - viewStartMinutes;
+
+      if (finalViewDurationMinutes <= 0) {
+        timelineScale = getMinTimelineScale();
+        renderTimeline();
+        timelineContainerWrapper.scrollLeft = 0;
+        return;
+      }
+
+      let newScale = (wrapperWidth * 60) / finalViewDurationMinutes;
+      newScale = Math.max(getMinTimelineScale(), newScale);
+      newScale = Math.min(300, newScale);
+
+      timelineScale = newScale;
+      renderTimeline();
+
+      const scrollTargetPx =
+        (viewStartMinutes - TIMELINE_START_HOUR * 60) * (timelineScale / 60);
+      timelineContainerWrapper.scrollLeft = scrollTargetPx;
+    }
   });
 
   timelineEventsContainer.addEventListener("mousedown", (e) => {
@@ -468,7 +579,6 @@ document.addEventListener("DOMContentLoaded", () => {
       eventBlock.style.cursor = "grabbing";
       eventBlock.style.zIndex = "1000";
     }
-
     e.preventDefault();
   });
 
@@ -479,7 +589,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const pixelsPerMinute = timelineScale / 60;
     const timelineRect = timelineContainerWrapper.getBoundingClientRect();
     const scrollLeft = timelineContainerWrapper.scrollLeft;
-
     let mouseXInTimeline = e.clientX - timelineRect.left + scrollLeft;
 
     if (draggingEvent) {
@@ -498,7 +607,6 @@ document.addEventListener("DOMContentLoaded", () => {
         (TIMELINE_END_HOUR - TIMELINE_START_HOUR) * 60 * pixelsPerMinute -
         eventDurationMinutes * pixelsPerMinute;
       newLeftPx = Math.min(newLeftPx, maxLeftPx);
-
       eventBlock.style.left = `${newLeftPx}px`;
     } else if (resizingEvent) {
       const eventBlock = timelineEventsContainer.querySelector(
@@ -532,6 +640,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (newStartPx + newWidthPx > originalStartPx + originalWidthPx) {
           newStartPx = originalStartPx + originalWidthPx - newWidthPx;
         }
+        newStartPx = Math.max(0, newStartPx);
 
         eventBlock.style.left = `${newStartPx}px`;
         eventBlock.style.width = `${newWidthPx}px`;
@@ -539,7 +648,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  document.addEventListener("mouseup", (e) => {
+  document.addEventListener("mouseup", () => {
     if (draggingEvent) {
       const eventBlock = timelineEventsContainer.querySelector(
         `.event-block[data-event-id="${draggingEvent.id}"]`,
@@ -559,6 +668,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (newEndMinutes > TIMELINE_END_HOUR * 60) {
           newEndMinutes = TIMELINE_END_HOUR * 60;
           newStartMinutes = newEndMinutes - currentDurationMinutes;
+          newStartMinutes = Math.max(TIMELINE_START_HOUR * 60, newStartMinutes);
         }
 
         draggingEvent.startTime = formatMinutesToTime(newStartMinutes);
@@ -587,18 +697,18 @@ document.addEventListener("DOMContentLoaded", () => {
         newStartMinutes = Math.max(TIMELINE_START_HOUR * 60, newStartMinutes);
         newEndMinutes = Math.min(TIMELINE_END_HOUR * 60, newEndMinutes);
 
-        if (newEndMinutes <= newStartMinutes) {
-          if (resizeHandleType === "right")
-            newEndMinutes =
-              newStartMinutes +
-              Math.round(MIN_EVENT_WIDTH_PX / pixelsPerMinute);
-          else
-            newStartMinutes =
-              newEndMinutes - Math.round(MIN_EVENT_WIDTH_PX / pixelsPerMinute);
+        const minDurationMinutes = Math.round(
+          MIN_EVENT_WIDTH_PX / pixelsPerMinute,
+        );
+        if (newEndMinutes - newStartMinutes < minDurationMinutes) {
+          if (resizeHandleType === "right") {
+            newEndMinutes = newStartMinutes + minDurationMinutes;
+          } else {
+            newStartMinutes = newEndMinutes - minDurationMinutes;
+          }
+          newStartMinutes = Math.max(TIMELINE_START_HOUR * 60, newStartMinutes);
+          newEndMinutes = Math.min(TIMELINE_END_HOUR * 60, newEndMinutes);
         }
-
-        newEndMinutes = Math.min(TIMELINE_END_HOUR * 60, newEndMinutes);
-        newStartMinutes = Math.max(TIMELINE_START_HOUR * 60, newStartMinutes);
 
         resizingEvent.startTime = formatMinutesToTime(newStartMinutes);
         resizingEvent.endTime = formatMinutesToTime(newEndMinutes);
@@ -633,9 +743,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function handleImportData(event) {
     const file = event.target.files[0];
-    if (!file) {
-      return;
-    }
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -651,7 +759,8 @@ document.addEventListener("DOMContentLoaded", () => {
             )
           ) {
             events = importedData.events;
-            maxDays = importedData.maxDays;
+            maxDays = importedData.maxDays || 1;
+            if (maxDays === 0) maxDays = 1;
             currentDay = 1;
             saveEvents();
             updateDaySelectOptions();
@@ -677,6 +786,70 @@ document.addEventListener("DOMContentLoaded", () => {
   exportDataBtn.addEventListener("click", handleExportData);
   importDataBtn.addEventListener("click", () => importFileInput.click());
   importFileInput.addEventListener("change", handleImportData);
+
+  clearDayBtn.addEventListener("click", () => {
+    const isDeleteAction = clearDayBtn.textContent === "Delete Day";
+
+    if (isDeleteAction) {
+      if (
+        confirm(
+          `Do you really want to delete Day ${currentDay}? This action cannot be undone.`,
+        )
+      ) {
+        const dayToDelete = currentDay;
+
+        events.forEach((event) => {
+          if (event.day > dayToDelete) {
+            event.day -= 1;
+          }
+        });
+        events = events.filter((event) => event.day !== dayToDelete);
+
+        maxDays -= 1;
+
+        if (maxDays === 0) {
+          maxDays = 1;
+          currentDay = 1;
+        } else if (currentDay > maxDays) {
+          currentDay = maxDays;
+        }
+
+        currentDay = Math.max(1, currentDay);
+
+        saveEvents();
+        updateDaySelectOptions();
+        renderAll();
+        alert(`Day ${dayToDelete} has been deleted.`);
+      }
+    } else {
+      if (
+        confirm(
+          `Do you really want to delete all events for Day ${currentDay}? This action cannot be undone.`,
+        )
+      ) {
+        events = events.filter((event) => event.day !== currentDay);
+        saveEvents();
+        renderAll();
+        alert(`Events for Day ${currentDay} have been cleared.`);
+      }
+    }
+  });
+
+  clearAllDataBtn.addEventListener("click", () => {
+    if (
+      confirm(
+        "Do you really want to delete ALL data for ALL days? This action cannot be undone and will reset the planner.",
+      )
+    ) {
+      events = [];
+      maxDays = 1;
+      currentDay = 1;
+      saveEvents();
+      updateDaySelectOptions();
+      renderAll();
+      alert("All data has been cleared.");
+    }
+  });
 
   function renderAll() {
     renderDayTabs();

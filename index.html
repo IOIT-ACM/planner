@@ -18,6 +18,9 @@
         <div class="data-management-controls">
           <button id="export-data-btn" title="Export Data">Export</button>
           <button id="import-data-btn" title="Import Data">Import</button>
+          <button id="clear-all-data-btn" title="Clear All Data">
+            Clear All
+          </button>
           <input
             type="file"
             id="import-file-input"
@@ -52,7 +55,12 @@
       </div>
 
       <div id="event-list-panel">
-        <h2 id="current-day-list-title">Events for Day 1</h2>
+        <div class="event-list-header">
+          <button id="clear-day-btn" title="Clear Events for this Day">
+            Clear Day
+          </button>
+          <h2 id="current-day-list-title">Events for Day 1</h2>
+        </div>
         <ul id="event-list"></ul>
       </div>
     </main>
