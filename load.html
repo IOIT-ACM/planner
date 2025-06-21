@@ -1,70 +1,111 @@
 <!doctype html>
 <html lang="en">
-<head>
+  <head>
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-ZBK015Q0G0"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-ZBK015Q0G0");
+    </script>
+
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="IOIT ACM Event Planner" />
+    <meta
+      name="description"
+      content="This project is an IOIT ACM Event Planner, a web application for visually scheduling and managing events across multiple days on an interactive timeline. Users can add, edit, and delete events, customize their details (like time, color, location & notes), and view them in both a timeline and a list format. It also supports data export/import and is designed to be responsive."
+    />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="IOIT ACM Event Planner" />
+    <meta
+      property="og:description"
+      content="Visually plan, schedule, and manage events using an interactive timeline interface built for IOIT ACM. Fully responsive and supports event data export/import."
+    />
+    <meta property="og:image" content="./acm.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="IOIT ACM Event Planner" />
+    <meta
+      name="twitter:description"
+      content="Web app for scheduling events with visual timelines. Supports edit, export/import, and more. Built for IOIT ACM."
+    />
+    <meta name="twitter:image" content="./acm.png" />
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Load Planner Data</title>
+    <title>IOIT ACM Event Planner</title>
     <link rel="stylesheet" href="./index.css" />
     <style>
-        main.load-page {
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: var(--color-cream);
-            border-radius: 8px;
-        }
-        .load-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .load-container label {
-            font-weight: 500;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .load-container input[type="url"] {
-            width: calc(100% - 16px);
-            padding: 8px;
-            border: 1px solid var(--color-brown);
-            border-radius: 4px;
-            font-size: 0.9em;
-            box-sizing: border-box;
-        }
-        .load-container button {
-            padding: 10px 15px;
-            background-color: var(--color-sand);
-            color: var(--color-olive-dark);
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-        .load-container button:hover {
-            background-color: var(--color-brown);
-            color: var(--color-cream);
-        }
-        .error-message {
-            color: var(--color-brown-dark);
-            background-color: #fdd;
-            border: 1px solid var(--color-brown-dark);
-            padding: 10px;
-            border-radius: 4px;
-            margin-top: 10px;
-            word-break: break-word;
-        }
-        .load-container a {
-            color: var(--color-olive-medium);
-            text-decoration: none;
-        }
-        .load-container a:hover {
-            color: var(--color-brown);
-            text-decoration: underline;
-        }
+      main.load-page {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: var(--color-cream);
+        border-radius: 8px;
+      }
+      .load-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+      .load-container label {
+        font-weight: 500;
+        display: block;
+        margin-bottom: 5px;
+      }
+      .load-container input[type="url"] {
+        width: calc(100% - 16px);
+        padding: 8px;
+        border: 1px solid var(--color-brown);
+        border-radius: 4px;
+        font-size: 0.9em;
+        box-sizing: border-box;
+      }
+      .load-container button {
+        padding: 10px 15px;
+        background-color: var(--color-sand);
+        color: var(--color-olive-dark);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition:
+          background-color 0.2s ease,
+          color 0.2s ease;
+      }
+      .load-container button:hover {
+        background-color: var(--color-brown);
+        color: var(--color-cream);
+      }
+      .error-message {
+        color: var(--color-brown-dark);
+        background-color: #fdd;
+        border: 1px solid var(--color-brown-dark);
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 10px;
+        word-break: break-word;
+      }
+      .load-container a {
+        color: var(--color-olive-medium);
+        text-decoration: none;
+      }
+      .load-container a:hover {
+        color: var(--color-brown);
+        text-decoration: underline;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <header>
       <div class="logo-title">
         <div class="acm-logo">
@@ -74,18 +115,25 @@
       </div>
     </header>
     <main class="load-page">
-        <div class="load-container">
-            <h2>Load Planner Data from URL</h2>
-            <p>Enter the URL of a JSON endpoint. The JSON data should be in the format: <code>{"events": [...], "maxDays": N}</code>.</p>
-            <div>
-                <label for="url-input">URL Endpoint:</label>
-                <input type="url" id="url-input" placeholder="https://example.com/data.json" />
-            </div>
-            <button id="load-data-btn">Load Data</button>
-            <div id="error-message-container" class="hidden error-message"></div>
-            <p><a href="./index.html">Back to Planner</a></p>
+      <div class="load-container">
+        <h2>Load Planner Data from URL</h2>
+        <p>
+          Enter the URL of a JSON endpoint. The JSON data should be in the
+          format: <code>{"events": [...], "maxDays": N}</code>.
+        </p>
+        <div>
+          <label for="url-input">URL Endpoint:</label>
+          <input
+            type="url"
+            id="url-input"
+            placeholder="https://example.com/data.json"
+          />
         </div>
+        <button id="load-data-btn">Load Data</button>
+        <div id="error-message-container" class="hidden error-message"></div>
+        <p><a href="./index.html">Back to Planner</a></p>
+      </div>
     </main>
     <script src="./js/load.js"></script>
-</body>
+  </body>
 </html>
