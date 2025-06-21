@@ -1,22 +1,51 @@
+:root {
+  --color-olive-dark: #283618;
+  --color-olive-medium: #606c38;
+  --color-cream: #fefae0;
+  --color-sand: #dda15e;
+  --color-brown: #bc6c25;
+
+  --color-olive-dark-rgba: 40, 54, 24;
+  --color-sand-rgba: 221, 161, 94;
+
+  --color-olive-medium-light: #939974;
+  --color-olive-medium-lightest: #d5d8c9;
+  --color-brown-dark: #96561d;
+
+  --shadow-sm: 0 1px 3px rgba(var(--color-olive-dark-rgba), 0.08);
+  --shadow-md: 0 2px 4px rgba(var(--color-olive-dark-rgba), 0.12);
+  --shadow-lg: 0 4px 15px rgba(var(--color-olive-dark-rgba), 0.15);
+  --shadow-tooltip: 0 2px 5px rgba(var(--color-olive-dark-rgba), 0.2);
+  --backdrop-overlay: rgba(var(--color-olive-dark-rgba), 0.5);
+  --focus-ring-sand: 0 0 0 2px rgba(var(--color-sand-rgba), 0.4);
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
   margin: 0;
-  background-color: #f4f7f6;
-  color: #333;
+  background-color: var(--color-cream);
+  color: var(--color-olive-dark);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 header {
-  background-color: #fff;
+  background-color: var(--color-cream);
   padding: 10px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #ddd;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid var(--color-olive-medium);
+  box-shadow: var(--shadow-sm);
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .logo-title {
@@ -30,12 +59,13 @@ header {
   height: 40px;
   object-fit: contain;
   display: block;
+  transition: transform 0.2s ease;
 }
 
 header h1 {
   font-size: 1.4em;
   margin: 0;
-  color: #333;
+  color: var(--color-olive-dark);
 }
 
 .header-actions {
@@ -45,8 +75,8 @@ header h1 {
 }
 
 .icon-btn {
-  background-color: #e9ecef;
-  border: 1px solid #ced4da;
+  background-color: var(--color-sand);
+  border: 1px solid var(--color-brown);
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -56,12 +86,18 @@ header h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #495057;
-  transition: background-color 0.2s;
+  color: var(--color-olive-dark);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.1s ease;
 }
 
 .icon-btn:hover {
-  background-color: #dee2e6;
+  background-color: var(--color-brown);
+  color: var(--color-cream);
+  transform: scale(1.1);
 }
 
 main {
@@ -76,12 +112,13 @@ main {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
-  background-color: #fff;
-  padding: 10px;
+  background-color: var(--color-cream);
   border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   flex-wrap: wrap;
   gap: 10px;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .day-selector {
@@ -96,21 +133,34 @@ main {
 .day-tab,
 #add-day-btn {
   padding: 8px 12px;
-  border: 1px solid #ccc;
-  background-color: #f8f9fa;
+  border: 1px solid var(--color-brown);
+  background-color: var(--color-olive-medium);
+  color: var(--color-cream);
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
   flex-shrink: 0;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.1s ease;
 }
 #add-day-btn {
   font-weight: bold;
 }
 
+.day-tab:hover,
+#add-day-btn:hover {
+  background-color: var(--color-brown);
+  color: var(--color-cream);
+  transform: translateY(-1px);
+}
+
 .day-tab.active {
-  background-color: #007bff;
-  color: white;
-  border-color: #007bff;
+  background-color: var(--color-sand);
+  color: var(--color-olive-dark);
+  border-color: var(--color-sand);
 }
 
 .zoom-controls {
@@ -121,18 +171,26 @@ main {
 
 .zoom-controls button {
   padding: 6px 10px;
-  border: 1px solid #ccc;
-  background-color: #f8f9fa;
+  border: 1px solid var(--color-brown);
+  background-color: var(--color-olive-medium);
+  color: var(--color-cream);
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.1s ease;
 }
 .zoom-controls button:hover {
-  background-color: #e9ecef;
+  background-color: var(--color-brown);
+  color: var(--color-cream);
+  transform: scale(1.05);
 }
 .zoom-controls span {
   font-size: 0.9em;
-  color: #555;
+  color: var(--color-olive-dark);
 }
 
 .data-management-controls {
@@ -143,34 +201,46 @@ main {
 
 .data-management-controls button {
   padding: 6px 10px;
-  border: 1px solid #ccc;
-  background-color: #f8f9fa;
+  border: 1px solid var(--color-brown);
+  background-color: var(--color-olive-medium);
+  color: var(--color-cream);
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.1s ease;
 }
 .data-management-controls button:hover {
-  background-color: #e9ecef;
+  background-color: var(--color-brown);
+  color: var(--color-cream);
+  transform: scale(1.05);
 }
 
 #clear-all-data-btn {
-  color: #dc3545;
-  border-color: #dc3545;
+  color: var(--color-brown);
+  border-color: var(--color-brown);
+  background-color: transparent;
 }
 #clear-all-data-btn:hover {
-  background-color: #f8d7da;
-  color: #721c24;
-  border-color: #c82333;
+  background-color: var(--color-brown);
+  color: var(--color-cream);
+  border-color: var(--color-brown);
 }
 
 #timeline-container-wrapper {
   width: 100%;
   overflow-x: auto;
-  background-color: #e0f2fe;
-  border: 1px solid #b0dffc;
+  background-color: var(--color-olive-medium-lightest);
+  border: 1px solid var(--color-olive-medium);
   border-radius: 6px;
   margin-bottom: 20px;
   padding-bottom: 10px;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 #timeline-container {
@@ -187,9 +257,12 @@ main {
   height: 30px;
   display: flex;
   font-size: 0.75em;
-  color: #333;
-  border-bottom: 1px solid #b0dffc;
+  color: var(--color-olive-dark);
+  border-bottom: 1px solid var(--color-olive-medium);
   padding-bottom: 10px;
+  transition:
+    border-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .time-tick {
@@ -198,7 +271,7 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #0284c7;
+  color: var(--color-olive-dark);
 }
 
 .time-tick span {
@@ -213,11 +286,14 @@ main {
   bottom: 0;
   width: 1px;
   height: 10px;
-  background-color: #7dd3fc;
+  background-color: var(--color-sand);
+  transition:
+    background-color 0.3s ease,
+    height 0.3s ease;
 }
 .time-tick.major::before {
   height: 15px;
-  background-color: #0ea5e9;
+  background-color: var(--color-brown);
 }
 
 #timeline-events {
@@ -229,9 +305,9 @@ main {
 .event-block {
   position: absolute;
   height: 40px;
-  background-color: #3498db;
-  color: white;
-  border: 1px solid #2980b9;
+  background-color: var(--color-sand);
+  color: var(--color-olive-dark);
+  border: 1px solid var(--color-brown);
   border-radius: 4px;
   padding: 0 5px;
   font-size: 0.8em;
@@ -241,13 +317,23 @@ main {
   justify-content: space-between;
   overflow: hidden;
   box-sizing: border-box;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
   z-index: 10;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    left 0.05s ease-out,
+    width 0.05s ease-out,
+    top 0.05s ease-out,
+    opacity 0.2s ease;
 }
 
 .event-block:active {
   cursor: grabbing;
   z-index: 100;
+  box-shadow: var(--shadow-lg);
+  opacity: 0.9;
 }
 
 .event-block-title {
@@ -265,6 +351,10 @@ main {
   position: absolute;
   top: 0;
   z-index: 20;
+  transition: background-color 0.1s ease;
+}
+.resize-handle:hover {
+  background-color: rgba(var(--color-sand-rgba), 0.3);
 }
 
 .resize-handle.left {
@@ -278,41 +368,49 @@ main {
 }
 
 #event-list-panel {
-  background-color: #fff;
-  padding: 15px;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background-color: var(--color-cream);
+  padding: 15px 0;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .event-list-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-olive-medium);
   padding-bottom: 8px;
   margin-bottom: 10px;
+  transition: border-color 0.3s ease;
 }
 
 #event-list-panel h2 {
   margin-top: 0;
   font-size: 1.2em;
-  color: #333;
+  color: var(--color-olive-dark);
   margin-bottom: 0;
 }
 
 #clear-day-btn {
   padding: 6px 10px;
-  border: 1px solid #dc3545;
-  background-color: #f8f9fa;
+  border: 1px solid var(--color-brown);
+  background-color: transparent;
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
-  color: #dc3545;
+  color: var(--color-brown);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.1s ease;
 }
 #clear-day-btn:hover {
-  background-color: #f8d7da;
-  border-color: #c82333;
-  color: #721c24;
+  background-color: var(--color-brown);
+  border-color: var(--color-brown);
+  color: var(--color-cream);
+  transform: scale(1.05);
 }
 
 #event-list {
@@ -322,20 +420,26 @@ main {
 }
 
 .event-list-item {
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
+  padding: 10px;
+  border-bottom: 1px solid var(--color-olive-medium-lightest);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 .event-list-item:last-child {
   border-bottom: none;
+}
+.event-list-item:hover {
+  background-color: var(--color-olive-medium-lightest);
 }
 
 .event-color-dot {
   width: 20px;
   height: 20px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-brown);
   border-radius: 4px;
   padding: 0;
   margin-right: 10px;
@@ -345,6 +449,12 @@ main {
   -moz-appearance: none;
   appearance: none;
   background-color: transparent;
+  transition:
+    border-color 0.2s ease,
+    transform 0.1s ease;
+}
+.event-color-dot:hover {
+  transform: scale(1.1);
 }
 .event-color-dot::-webkit-color-swatch-wrapper {
   padding: 0;
@@ -363,8 +473,7 @@ main {
 .event-time {
   margin-right: 15px;
   font-size: 0.9em;
-  color: #555;
-  min-width: 130px;
+  color: var(--color-olive-dark);
 }
 
 .event-title {
@@ -372,9 +481,14 @@ main {
   flex-grow: 1;
   margin-right: 5px;
   cursor: pointer;
+  transition:
+    color 0.2s ease,
+    text-decoration-color 0.2s ease;
 }
 .event-title:hover {
   text-decoration: underline;
+  text-decoration-color: var(--color-sand);
+  color: var(--color-sand);
 }
 
 .event-actions button {
@@ -383,21 +497,35 @@ main {
   cursor: pointer;
   font-size: 1em;
   padding: 2px 5px;
-  color: #555;
+  color: var(--color-olive-dark);
+  transition:
+    color 0.2s ease,
+    transform 0.1s ease;
 }
 .event-actions button:hover {
-  color: #000;
+  color: var(--color-sand);
+  transform: scale(1.1);
 }
 
 .event-details {
   width: 100%;
-  background-color: #f9f9f9;
+  background-color: var(--color-olive-medium-lightest);
   padding: 10px;
   margin-top: 8px;
   border-radius: 4px;
   font-size: 0.85em;
-  color: #444;
-  border: 1px solid #eee;
+  color: var(--color-olive-dark);
+  border: 1px solid var(--color-olive-medium);
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease,
+    max-height 0.3s ease-in-out,
+    opacity 0.3s ease-in-out,
+    padding-top 0.3s ease-in-out,
+    padding-bottom 0.3s ease-in-out,
+    margin-top 0.3s ease-in-out,
+    border-width 0.3s ease-in-out;
 }
 
 .event-details table {
@@ -419,21 +547,37 @@ main {
   margin: 5px 0;
 }
 .event-details strong {
-  color: #333;
+  color: var(--color-olive-dark);
 }
 
 dialog {
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-brown);
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg);
   width: 80%;
   max-width: 500px;
   max-height: 75vh;
+  background-color: var(--color-cream);
+  color: var(--color-olive-dark);
+  opacity: 0;
+  transform: scale(0.95) translateY(10px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+dialog[open] {
+  opacity: 1;
+  transform: scale(1) translateY(0);
 }
 
 dialog::backdrop {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--backdrop-overlay);
+  transition: background-color 0.3s ease;
 }
 
 #event-form div {
@@ -445,6 +589,7 @@ dialog::backdrop {
   margin-bottom: 4px;
   font-weight: 500;
   font-size: 0.9em;
+  color: var(--color-olive-dark);
 }
 
 #event-form input[type="text"],
@@ -454,14 +599,31 @@ dialog::backdrop {
 #event-form textarea {
   width: calc(100% - 12px);
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-brown);
   border-radius: 4px;
   font-size: 0.9em;
   box-sizing: border-box;
+  background-color: var(--color-cream);
+  color: var(--color-olive-dark);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 #event-form input[type="color"] {
   height: 35px;
   padding: 2px;
+}
+
+#event-form input[type="text"]:focus,
+#event-form input[type="time"]:focus,
+#event-form input[type="color"]:focus,
+#event-form select:focus,
+#event-form textarea:focus {
+  border-color: var(--color-sand);
+  box-shadow: var(--focus-ring-sand);
+  outline: none;
 }
 
 #event-form textarea {
@@ -482,30 +644,40 @@ dialog::backdrop {
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.1s ease;
+}
+.dialog-buttons button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 #save-event-btn {
-  background-color: #007bff;
-  color: white;
+  background-color: var(--color-sand);
+  color: var(--color-olive-dark);
 }
 #save-event-btn:hover {
-  background-color: #0056b3;
+  background-color: var(--color-brown);
+  color: var(--color-cream);
 }
 
 #delete-event-btn {
-  background-color: #dc3545;
-  color: white;
+  background-color: var(--color-brown);
+  color: var(--color-cream);
 }
 #delete-event-btn:hover {
-  background-color: #c82333;
+  background-color: var(--color-brown-dark);
 }
 
 #cancel-event-btn {
-  background-color: #6c757d;
-  color: white;
+  background-color: var(--color-olive-medium);
+  color: var(--color-cream);
 }
 #cancel-event-btn:hover {
-  background-color: #545b62;
+  background-color: var(--color-olive-dark);
 }
 
 .hidden {
@@ -514,13 +686,23 @@ dialog::backdrop {
 
 #timeline-tooltip {
   position: fixed;
-  background-color: #333;
-  color: white;
+  background-color: var(--color-olive-dark);
+  color: var(--color-cream);
   padding: 5px 10px;
   border-radius: 4px;
   font-size: 0.8em;
   z-index: 2000;
   pointer-events: none;
   white-space: nowrap;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-tooltip);
+  opacity: 0;
+  transform: scale(0.95);
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+#timeline-tooltip:not(.hidden) {
+  opacity: 1;
+  transform: scale(1);
 }

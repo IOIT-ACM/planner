@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateTooltipPosition(e) {
-    if (timelineTooltip.classList.contains('hidden')) return;
+    if (timelineTooltip.classList.contains("hidden")) return;
 
     const offsetX = 15;
     const offsetY = 15;
@@ -122,16 +122,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const viewportHeight = window.innerHeight;
 
     if (newX + tooltipWidth > viewportWidth) {
-        newX = e.clientX - tooltipWidth - offsetX;
+      newX = e.clientX - tooltipWidth - offsetX;
     }
     if (newX < 0) {
-        newX = offsetX;
+      newX = offsetX;
     }
     if (newY + tooltipHeight > viewportHeight) {
-        newY = e.clientY - tooltipHeight - offsetY;
+      newY = e.clientY - tooltipHeight - offsetY;
     }
     if (newY < 0) {
-        newY = offsetY;
+      newY = offsetY;
     }
 
     timelineTooltip.style.left = `${newX}px`;
@@ -265,19 +265,21 @@ document.addEventListener("DOMContentLoaded", () => {
       rightHandle.classList.add("resize-handle", "right");
       eventBlock.appendChild(rightHandle);
 
-      eventBlock.addEventListener('mouseenter', (e) => {
-        const currentEventData = events.find(ev => ev.id === eventBlock.dataset.eventId);
+      eventBlock.addEventListener("mouseenter", (e) => {
+        const currentEventData = events.find(
+          (ev) => ev.id === eventBlock.dataset.eventId,
+        );
         if (currentEventData) {
-            timelineTooltip.innerHTML = `<strong>${currentEventData.title}</strong><br>${formatTimeForDisplay(currentEventData.startTime)} - ${formatTimeForDisplay(currentEventData.endTime)}`;
-            timelineTooltip.classList.remove('hidden');
-            updateTooltipPosition(e);
+          timelineTooltip.innerHTML = `<strong>${currentEventData.title}</strong><br>${formatTimeForDisplay(currentEventData.startTime)} - ${formatTimeForDisplay(currentEventData.endTime)}`;
+          timelineTooltip.classList.remove("hidden");
+          updateTooltipPosition(e);
         }
       });
-      eventBlock.addEventListener('mousemove', (e) => {
+      eventBlock.addEventListener("mousemove", (e) => {
         updateTooltipPosition(e);
       });
-      eventBlock.addEventListener('mouseleave', () => {
-        timelineTooltip.classList.add('hidden');
+      eventBlock.addEventListener("mouseleave", () => {
+        timelineTooltip.classList.add("hidden");
       });
 
       timelineEventsContainer.appendChild(eventBlock);
@@ -524,67 +526,90 @@ document.addEventListener("DOMContentLoaded", () => {
     renderTimeline();
   });
 
-  fitTimelineBtn.addEventListener("click", () => {
-    const dayEvents = events.filter(event => event.day === currentDay);
+  function FitTimelineOnPage() {
+    const dayEvents = events.filter((event) => event.day === currentDay);
     const wrapperWidth = timelineContainerWrapper.clientWidth;
 
     if (dayEvents.length === 0) {
+      timelineScale = getMinTimelineScale();
+      renderTimeline();
+      timelineContainerWrapper.scrollLeft = 0;
+    } else {
+      let minEventStartMinutes = TIMELINE_END_HOUR * 60;
+      let maxEventEndMinutes = TIMELINE_START_HOUR * 60;
+
+      dayEvents.forEach((event) => {
+        minEventStartMinutes = Math.min(
+          minEventStartMinutes,
+          parseTimeToMinutes(event.startTime),
+        );
+        maxEventEndMinutes = Math.max(
+          maxEventEndMinutes,
+          parseTimeToMinutes(event.endTime),
+        );
+      });
+
+      const FIT_PADDING_MINUTES = 30;
+      const MIN_FIT_VIEW_DURATION_MINUTES = 60;
+      const FULL_DAY_MINUTES = (TIMELINE_END_HOUR - TIMELINE_START_HOUR) * 60;
+
+      const eventActualSpanMinutes = maxEventEndMinutes - minEventStartMinutes;
+
+      let targetViewDurationMinutes =
+        eventActualSpanMinutes + 2 * FIT_PADDING_MINUTES;
+      targetViewDurationMinutes = Math.max(
+        targetViewDurationMinutes,
+        MIN_FIT_VIEW_DURATION_MINUTES,
+      );
+      targetViewDurationMinutes = Math.min(
+        targetViewDurationMinutes,
+        FULL_DAY_MINUTES,
+      );
+
+      const eventCenterMinutes =
+        (minEventStartMinutes + maxEventEndMinutes) / 2;
+
+      let viewStartMinutes = eventCenterMinutes - targetViewDurationMinutes / 2;
+      let viewEndMinutes = eventCenterMinutes + targetViewDurationMinutes / 2;
+
+      if (viewStartMinutes < TIMELINE_START_HOUR * 60) {
+        viewStartMinutes = TIMELINE_START_HOUR * 60;
+        viewEndMinutes = Math.min(
+          TIMELINE_END_HOUR * 60,
+          viewStartMinutes + targetViewDurationMinutes,
+        );
+      }
+      if (viewEndMinutes > TIMELINE_END_HOUR * 60) {
+        viewEndMinutes = TIMELINE_END_HOUR * 60;
+        viewStartMinutes = Math.max(
+          TIMELINE_START_HOUR * 60,
+          viewEndMinutes - targetViewDurationMinutes,
+        );
+      }
+
+      const finalViewDurationMinutes = viewEndMinutes - viewStartMinutes;
+
+      if (finalViewDurationMinutes <= 0) {
         timelineScale = getMinTimelineScale();
         renderTimeline();
         timelineContainerWrapper.scrollLeft = 0;
-    } else {
-        let minEventStartMinutes = TIMELINE_END_HOUR * 60;
-        let maxEventEndMinutes = TIMELINE_START_HOUR * 60;
+        return;
+      }
 
-        dayEvents.forEach(event => {
-            minEventStartMinutes = Math.min(minEventStartMinutes, parseTimeToMinutes(event.startTime));
-            maxEventEndMinutes = Math.max(maxEventEndMinutes, parseTimeToMinutes(event.endTime));
-        });
+      let newScale = (wrapperWidth * 60) / finalViewDurationMinutes;
+      newScale = Math.max(getMinTimelineScale(), newScale);
+      newScale = Math.min(300, newScale);
 
-        const FIT_PADDING_MINUTES = 30;
-        const MIN_FIT_VIEW_DURATION_MINUTES = 60;
-        const FULL_DAY_MINUTES = (TIMELINE_END_HOUR - TIMELINE_START_HOUR) * 60;
+      timelineScale = newScale;
+      renderTimeline();
 
-        const eventActualSpanMinutes = maxEventEndMinutes - minEventStartMinutes;
-
-        let targetViewDurationMinutes = eventActualSpanMinutes + 2 * FIT_PADDING_MINUTES;
-        targetViewDurationMinutes = Math.max(targetViewDurationMinutes, MIN_FIT_VIEW_DURATION_MINUTES);
-        targetViewDurationMinutes = Math.min(targetViewDurationMinutes, FULL_DAY_MINUTES);
-
-        const eventCenterMinutes = (minEventStartMinutes + maxEventEndMinutes) / 2;
-
-        let viewStartMinutes = eventCenterMinutes - targetViewDurationMinutes / 2;
-        let viewEndMinutes = eventCenterMinutes + targetViewDurationMinutes / 2;
-
-        if (viewStartMinutes < TIMELINE_START_HOUR * 60) {
-            viewStartMinutes = TIMELINE_START_HOUR * 60;
-            viewEndMinutes = Math.min(TIMELINE_END_HOUR * 60, viewStartMinutes + targetViewDurationMinutes);
-        }
-        if (viewEndMinutes > TIMELINE_END_HOUR * 60) {
-            viewEndMinutes = TIMELINE_END_HOUR * 60;
-            viewStartMinutes = Math.max(TIMELINE_START_HOUR * 60, viewEndMinutes - targetViewDurationMinutes);
-        }
-        
-        const finalViewDurationMinutes = viewEndMinutes - viewStartMinutes;
-
-        if (finalViewDurationMinutes <= 0) {
-            timelineScale = getMinTimelineScale();
-            renderTimeline();
-            timelineContainerWrapper.scrollLeft = 0;
-            return;
-        }
-
-        let newScale = (wrapperWidth * 60) / finalViewDurationMinutes;
-        newScale = Math.max(getMinTimelineScale(), newScale);
-        newScale = Math.min(300, newScale);
-
-        timelineScale = newScale;
-        renderTimeline();
-
-        const scrollTargetPx = (viewStartMinutes - TIMELINE_START_HOUR * 60) * (timelineScale / 60);
-        timelineContainerWrapper.scrollLeft = scrollTargetPx;
+      const scrollTargetPx =
+        (viewStartMinutes - TIMELINE_START_HOUR * 60) * (timelineScale / 60);
+      timelineContainerWrapper.scrollLeft = scrollTargetPx;
     }
-  });
+  }
+
+  fitTimelineBtn.addEventListener("click", FitTimelineOnPage);
 
   timelineEventsContainer.addEventListener("mousedown", (e) => {
     const eventBlock = e.target.closest(".event-block");
@@ -683,19 +708,19 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       if (eventBlock) {
         const distMoved = Math.sqrt(
-            Math.pow(e.clientX - mouseDownPos.x, 2) +
-            Math.pow(e.clientY - mouseDownPos.y, 2)
+          Math.pow(e.clientX - mouseDownPos.x, 2) +
+            Math.pow(e.clientY - mouseDownPos.y, 2),
         );
 
         if (distMoved < CLICK_THRESHOLD_PX) {
-            openEditDialog(draggingEvent.id);
-            eventBlock.style.cursor = "grab";
-            eventBlock.style.zIndex = "10";
-            draggingEvent = null;
-            mouseDownPos = null;
-            document.body.style.cursor = "default";
-            renderAll(); // To reset any visual cues if needed
-            return;
+          openEditDialog(draggingEvent.id);
+          eventBlock.style.cursor = "grab";
+          eventBlock.style.zIndex = "10";
+          draggingEvent = null;
+          mouseDownPos = null;
+          document.body.style.cursor = "default";
+          renderAll(); // To reset any visual cues if needed
+          return;
         }
 
         const pixelsPerMinute = timelineScale / 60;
@@ -767,10 +792,11 @@ document.addEventListener("DOMContentLoaded", () => {
     resizeHandleType = null;
     mouseDownPos = null;
     document.body.style.cursor = "default";
-    const allEventBlocks = timelineEventsContainer.querySelectorAll('.event-block');
-    allEventBlocks.forEach(block => {
-        block.style.cursor = 'grab';
-        block.style.zIndex = '10';
+    const allEventBlocks =
+      timelineEventsContainer.querySelectorAll(".event-block");
+    allEventBlocks.forEach((block) => {
+      block.style.cursor = "grab";
+      block.style.zIndex = "10";
     });
   });
 
@@ -815,7 +841,6 @@ document.addEventListener("DOMContentLoaded", () => {
             saveEvents();
             updateDaySelectOptions();
             renderAll();
-            alert("Data imported successfully!");
           }
         } else {
           alert("Invalid file format. Expected { events: [], maxDays: N }");
@@ -853,8 +878,7 @@ document.addEventListener("DOMContentLoaded", () => {
             event.day -= 1;
           }
         });
-        events = events.filter(event => event.day !== dayToDelete);
-
+        events = events.filter((event) => event.day !== dayToDelete);
 
         maxDays -= 1;
 
@@ -870,7 +894,6 @@ document.addEventListener("DOMContentLoaded", () => {
         saveEvents();
         updateDaySelectOptions();
         renderAll();
-        alert(`Day ${dayToDelete} has been deleted.`);
       }
     } else {
       if (
@@ -881,7 +904,6 @@ document.addEventListener("DOMContentLoaded", () => {
         events = events.filter((event) => event.day !== currentDay);
         saveEvents();
         renderAll();
-        alert(`Events for Day ${currentDay} have been cleared.`);
       }
     }
   });
@@ -910,4 +932,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadEvents();
   renderAll();
+  FitTimelineOnPage();
 });
