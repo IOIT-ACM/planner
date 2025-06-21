@@ -7,15 +7,12 @@ function initApp() {
   const dialogTitle = document.getElementById("dialog-title");
   const eventIdInput = document.getElementById("event-id");
   const eventTitleInput = document.getElementById("event-title-input");
-  const eventDaySelect = document.getElementById("event-day-select");
+  const eventDayRadioGroup = document.getElementById("event-day-radio-group");
   const eventStartTimeInput = document.getElementById("event-start-time");
   const eventEndTimeInput = document.getElementById("event-end-time");
-  const eventCategoryInput = document.getElementById("event-category");
   const eventColorInput = document.getElementById("event-color");
-  const eventSpeakerInput = document.getElementById("event-speaker");
   const eventLocationInput = document.getElementById("event-location");
   const eventNotesInput = document.getElementById("event-notes");
-  const eventAttachmentsInput = document.getElementById("event-attachments");
 
   const timelineContainerWrapper = document.getElementById(
     "timeline-container-wrapper",
@@ -82,16 +79,28 @@ function initApp() {
       currentDay = Math.min(currentDay, maxDays);
       currentDay = Math.max(1, currentDay);
     }
-    updateDaySelectOptions();
+    updateDayRadioOptions();
   }
 
-  function updateDaySelectOptions() {
-    eventDaySelect.innerHTML = "";
+  function updateDayRadioOptions() {
+    eventDayRadioGroup.innerHTML = "";
     for (let i = 1; i <= maxDays; i++) {
-      const option = document.createElement("option");
-      option.value = i;
-      option.textContent = `Day ${i}`;
-      eventDaySelect.appendChild(option);
+      const radioDiv = document.createElement("div");
+      radioDiv.classList.add("radio-option");
+
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "event-day";
+      input.id = `event-day-${i}`;
+      input.value = i;
+
+      const label = document.createElement("label");
+      label.htmlFor = `event-day-${i}`;
+      label.textContent = `Day ${i}`;
+
+      radioDiv.appendChild(input);
+      radioDiv.appendChild(label);
+      eventDayRadioGroup.appendChild(radioDiv);
     }
   }
 
@@ -117,7 +126,7 @@ function initApp() {
     addDayButton.title = "Add New Day";
     addDayButton.addEventListener("click", () => {
       maxDays++;
-      updateDaySelectOptions();
+      updateDayRadioOptions();
       saveEvents();
       renderDayTabs();
     });
@@ -366,13 +375,8 @@ function initApp() {
         detailsDiv.classList.add("event-details", "hidden");
         detailsDiv.innerHTML = `
             <table>
-                <tr><td>Category:</td><td>${event.category || "N/A"}</td></tr>
-                <tr><td>Speaker:</td><td>${event.speaker || "N/A"}</td></tr>
                 <tr><td>Location:</td><td>${event.location || "N/A"}</td></tr>
                 <tr><td>Notes:</td><td>${event.notes || "N/A"}</td></tr>
-                <tr><td>Attachments:</td><td>${
-                  event.attachments || "N/A"
-                }</td></tr>
             </table>
         `;
         li.appendChild(detailsDiv);
@@ -401,8 +405,20 @@ function initApp() {
     dialogTitle.textContent = "Add Event";
     eventForm.reset();
     eventIdInput.value = "";
-    updateDaySelectOptions();
-    eventDaySelect.value = currentDay;
+    updateDayRadioOptions();
+    const radioToSelect = eventDayRadioGroup.querySelector(
+      `input[value="${currentDay}"]`,
+    );
+    if (radioToSelect) {
+      radioToSelect.checked = true;
+    } else {
+      const firstRadio = eventDayRadioGroup.querySelector(
+        'input[type="radio"]',
+      );
+      if (firstRadio) {
+        firstRadio.checked = true;
+      }
+    }
     eventColorInput.value = "#3498db";
     deleteEventBtn.style.display = "none";
     if (eventDialog.showModal) eventDialog.showModal();
@@ -415,16 +431,18 @@ function initApp() {
     dialogTitle.textContent = "Edit Event";
     eventIdInput.value = event.id;
     eventTitleInput.value = event.title;
-    updateDaySelectOptions();
-    eventDaySelect.value = event.day;
+    updateDayRadioOptions();
+    const radioToSelect = eventDayRadioGroup.querySelector(
+      `input[value="${event.day}"]`,
+    );
+    if (radioToSelect) {
+      radioToSelect.checked = true;
+    }
     eventStartTimeInput.value = event.startTime;
     eventEndTimeInput.value = event.endTime;
-    eventCategoryInput.value = event.category;
     eventColorInput.value = event.color;
-    eventSpeakerInput.value = event.speaker || "";
     eventLocationInput.value = event.location || "";
     eventNotesInput.value = event.notes || "";
-    eventAttachmentsInput.value = event.attachments || "";
 
     deleteEventBtn.style.display = "inline-block";
     if (eventDialog.showModal) eventDialog.showModal();
@@ -444,18 +462,23 @@ function initApp() {
       return;
     }
 
+    const selectedDayRadio = eventDayRadioGroup.querySelector(
+      'input[name="event-day"]:checked',
+    );
+    if (!selectedDayRadio) {
+      showCustomAlert("Please select a day for the event.", "Validation Error");
+      return;
+    }
+
     const eventData = {
       id: id || Date.now().toString(),
       title: eventTitleInput.value,
-      day: parseInt(eventDaySelect.value),
+      day: parseInt(selectedDayRadio.value),
       startTime: startTimeValue,
       endTime: endTimeValue,
-      category: eventCategoryInput.value,
       color: eventColorInput.value,
-      speaker: eventSpeakerInput.value,
       location: eventLocationInput.value,
       notes: eventNotesInput.value,
-      attachments: eventAttachmentsInput.value,
     };
 
     if (id) {
@@ -689,7 +712,7 @@ function initApp() {
           draggingEvent = null;
           mouseDownPos = null;
           document.body.style.cursor = "default";
-          renderAll(); 
+          renderAll();
           return;
         }
 
@@ -863,7 +886,7 @@ function initApp() {
               if (maxDays === 0) maxDays = 1;
               currentDay = 1;
               saveEvents();
-              updateDaySelectOptions();
+              updateDayRadioOptions();
               renderAll();
               closeMobileSidebar();
               FitTimelineOnPage();
@@ -912,7 +935,7 @@ function initApp() {
         "Delete Day",
         () => {
           const dayToDelete = currentDay;
-          
+
           const eventsToKeep = [];
           events.forEach((event) => {
             if (event.day < dayToDelete) {
@@ -933,7 +956,7 @@ function initApp() {
           }
           currentDay = Math.max(1, currentDay);
           saveEvents();
-          updateDaySelectOptions();
+          updateDayRadioOptions();
           renderAll();
         },
       );
@@ -959,7 +982,7 @@ function initApp() {
         maxDays = 1;
         currentDay = 1;
         saveEvents();
-        updateDaySelectOptions();
+        updateDayRadioOptions();
         renderAll();
         closeMobileSidebar();
       },

@@ -88,43 +88,22 @@
           <input type="text" id="event-title-input" required />
         </div>
         <div>
-          <label for="event-day-select">Day:</label>
-          <select id="event-day-select"></select>
+          <label>Day:</label>
+          <div id="event-day-radio-group" class="event-day-radio-group"></div>
         </div>
-        <div>
-          <label for="event-start-time">Start Time:</label>
-          <input type="time" id="event-start-time" required />
-        </div>
-        <div>
-          <label for="event-end-time">End Time:</label>
-          <input type="time" id="event-end-time" required />
-        </div>
-        <div>
-          <label for="event-category">Category:</label>
-          <select id="event-category">
-            <option value="workshop">Workshop</option>
-            <option value="keynote">Keynote</option>
-            <option value="break">Break</option>
-            <option value="social">Social</option>
-            <option value="ceremony">Ceremony</option>
-            <option value="coding_competition">Coding Competition</option>
-            <option value="panel">Panel Discussion</option>
-            <option value="talk">Talk/Session</option>
-            <option value="esports">E-Sports</option>
-            <option value="mun_social">MUN Social</option>
-            <option value="mun_session">MUN Session</option>
-            <option value="esummit_talk">E-Summit Talk</option>
-            <option value="esummit_competition">E-Summit Competition</option>
-            <option value="other">Other</option>
-          </select>
+        <div style="display: flex; gap: 10px; width: 100%; justify-content: space-between;">
+          <div style="flex: 1;">
+            <label for="event-start-time">Start Time:</label>
+            <input type="time" id="event-start-time" required style="width: 100%;" />
+          </div>
+          <div style="flex: 1;">
+            <label for="event-end-time">End Time:</label>
+            <input type="time" id="event-end-time" required style="width: 100%;" />
+          </div>
         </div>
         <div>
           <label for="event-color">Color:</label>
           <input type="color" id="event-color" value="#3498db" />
-        </div>
-        <div>
-          <label for="event-speaker">Speaker:</label>
-          <input type="text" id="event-speaker" />
         </div>
         <div>
           <label for="event-location">Location:</label>
@@ -133,10 +112,6 @@
         <div>
           <label for="event-notes">Notes:</label>
           <textarea id="event-notes"></textarea>
-        </div>
-        <div>
-          <label for="event-attachments">Attachments (comma-separated):</label>
-          <input type="text" id="event-attachments" />
         </div>
         <div class="dialog-buttons">
           <button type="submit" id="save-event-btn">Save</button>

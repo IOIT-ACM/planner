@@ -423,7 +423,7 @@ main {
 }
 
 .event-list-item {
-  padding: 10px;
+  padding: 15px;
   border-bottom: 1px solid var(--color-olive-medium-lightest);
   display: flex;
   align-items: center;
@@ -628,6 +628,61 @@ dialog::backdrop {
 #event-form textarea {
   min-height: 60px;
   resize: vertical;
+}
+
+.event-day-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.event-day-radio-group .radio-option {
+  display: flex;
+  align-items: center;
+  background-color: var(--color-olive-medium-lightest);
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--color-olive-medium);
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.event-day-radio-group .radio-option:hover {
+  background-color: var(--color-olive-medium-light);
+}
+
+.event-day-radio-group input[type="radio"] {
+  margin-right: 8px;
+  accent-color: var(--color-sand);
+  width: auto;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}
+.event-day-radio-group input[type="radio"]:focus {
+  box-shadow: none;
+  outline-offset: 2px;
+}
+
+.event-day-radio-group label {
+  font-weight: normal;
+  font-size: 0.9em;
+  color: var(--color-olive-dark);
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+.event-day-radio-group input[type="radio"]:checked + label {
+  font-weight: bold;
+  color: var(--color-brown);
+}
+
+.event-day-radio-group .radio-option:has(input[type="radio"]:checked) {
+  background-color: var(--color-cream);
 }
 
 .dialog-buttons {
