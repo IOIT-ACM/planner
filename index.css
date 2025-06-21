@@ -22,21 +22,14 @@ header {
 .logo-title {
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 
-.acm-logo-shape {
-  width: 36px;
-  height: 36px;
-  background-color: #0072c6;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  margin-right: 12px;
-  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  font-size: 13px;
-  flex-shrink: 0;
+.acm-logo img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  display: block;
 }
 
 header h1 {
@@ -183,6 +176,7 @@ main {
   font-size: 0.75em;
   color: #333;
   border-bottom: 1px solid #b0dffc;
+  padding-bottom: 10px;
 }
 
 .time-tick {
@@ -216,6 +210,7 @@ main {
 #timeline-events {
   position: relative;
   height: 100px;
+  margin-top: 22px;
 }
 
 .event-block {
