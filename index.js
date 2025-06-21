@@ -29,6 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const dayTabsContainer = document.getElementById("day-tabs-container");
   const zoomInBtn = document.getElementById("zoom-in-btn");
   const zoomOutBtn = document.getElementById("zoom-out-btn");
+  const fitTimelineBtn = document.getElementById("fit-timeline-btn"); // New Fit Button
 
   const exportDataBtn = document.getElementById("export-data-btn");
   const importDataBtn = document.getElementById("import-data-btn");
@@ -124,6 +125,13 @@ document.addEventListener("DOMContentLoaded", () => {
     dayTabsContainer.appendChild(addDayButton);
   }
 
+  function getMinTimelineScale() {
+    const wrapperWidth = timelineContainerWrapper.clientWidth;
+    const timelineDurationHours = TIMELINE_END_HOUR - TIMELINE_START_HOUR;
+    if (timelineDurationHours <= 0) return 30; // Default fallback
+    return Math.max(10, wrapperWidth / timelineDurationHours); // Ensure it's not too small
+  }
+
   function renderTimeline() {
     const pixelsPerMinute = timelineScale / 60;
     const timelineDurationHours = TIMELINE_END_HOUR - TIMELINE_START_HOUR;
@@ -157,7 +165,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const dayEvents = events.filter((event) => event.day === currentDay);
-    let yOffset = 0;
     const eventHeight = 40;
     const eventMargin = 5;
     let maxBottom = 100;
@@ -248,6 +255,19 @@ document.addEventListener("DOMContentLoaded", () => {
     return `#${[r, g, b].map((x) => Math.max(0, Math.min(255, x)).toString(16).padStart(2, "0")).join("")}`;
   }
 
+  function toggleEventDetails(listItem) {
+    const detailsDiv = listItem.querySelector(".event-details");
+    const chevronBtn = listItem.querySelector(
+      '.event-actions button[title="Toggle Details"]',
+    );
+    if (!detailsDiv || !chevronBtn) return;
+
+    const isExpanded = chevronBtn.dataset.expanded === "true";
+    detailsDiv.classList.toggle("hidden", isExpanded);
+    chevronBtn.innerHTML = isExpanded ? "▼" : "▲";
+    chevronBtn.dataset.expanded = !isExpanded;
+  }
+
   function renderEventList() {
     eventListUl.innerHTML = "";
     currentDayListTitle.textContent = `Events for Day ${currentDay}`;
@@ -268,10 +288,27 @@ document.addEventListener("DOMContentLoaded", () => {
       li.classList.add("event-list-item");
       li.dataset.eventId = event.id;
 
-      const colorDot = document.createElement("div");
-      colorDot.classList.add("event-color-dot");
-      colorDot.style.backgroundColor = event.color;
-      li.appendChild(colorDot);
+      const colorInput = document.createElement("input"); // Changed to input
+      colorInput.type = "color";
+      colorInput.classList.add("event-color-dot");
+      colorInput.value = event.color;
+      colorInput.addEventListener("input", (e) => {
+        const targetEvent = events.find((ev) => ev.id === event.id);
+        if (targetEvent) {
+          targetEvent.color = e.target.value;
+          saveEvents();
+          renderTimeline(); // Re-render timeline for color change
+          // No need to re-render full list, just update this item's block color if needed
+          const timelineBlock = timelineEventsContainer.querySelector(
+            `.event-block[data-event-id="${event.id}"]`,
+          );
+          if (timelineBlock) {
+            timelineBlock.style.backgroundColor = e.target.value;
+            timelineBlock.style.borderColor = darkenColor(e.target.value, 20);
+          }
+        }
+      });
+      li.appendChild(colorInput);
 
       const timeSpan = document.createElement("span");
       timeSpan.classList.add("event-time");
@@ -281,6 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const titleSpan = document.createElement("span");
       titleSpan.classList.add("event-title");
       titleSpan.textContent = event.title;
+      titleSpan.addEventListener("click", () => toggleEventDetails(li)); // Click title to toggle
       li.appendChild(titleSpan);
 
       const actionsSpan = document.createElement("span");
@@ -296,6 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
       chevronBtn.innerHTML = "▼";
       chevronBtn.title = "Toggle Details";
       chevronBtn.dataset.expanded = "false";
+      chevronBtn.addEventListener("click", () => toggleEventDetails(li)); // Chevron also toggles
       actionsSpan.appendChild(chevronBtn);
 
       li.appendChild(actionsSpan);
@@ -310,14 +349,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 <p><strong>Attachments:</strong> ${event.attachments || "N/A"}</p>
             `;
       li.appendChild(detailsDiv);
-
-      chevronBtn.addEventListener("click", () => {
-        const isExpanded = chevronBtn.dataset.expanded === "true";
-        detailsDiv.classList.toggle("hidden", isExpanded);
-        chevronBtn.innerHTML = isExpanded ? "▼" : "▲";
-        chevronBtn.dataset.expanded = !isExpanded;
-      });
-
       eventListUl.appendChild(li);
     });
   }
@@ -327,6 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
     eventForm.reset();
     eventIdInput.value = "";
     eventDaySelect.value = currentDay;
+    eventColorInput.value = "#3498db"; // Default color for new events
     deleteEventBtn.style.display = "none";
     eventDialog.showModal();
   }
@@ -401,12 +433,18 @@ document.addEventListener("DOMContentLoaded", () => {
   cancelEventBtn.addEventListener("click", () => eventDialog.close());
 
   zoomInBtn.addEventListener("click", () => {
-    timelineScale = Math.min(300, timelineScale + 20);
+    timelineScale = Math.min(300, timelineScale + 20); // Max zoom in
     renderTimeline();
   });
 
   zoomOutBtn.addEventListener("click", () => {
-    timelineScale = Math.max(30, timelineScale - 20);
+    const minScale = getMinTimelineScale();
+    timelineScale = Math.max(minScale, timelineScale - 20);
+    renderTimeline();
+  });
+
+  fitTimelineBtn.addEventListener("click", () => {
+    timelineScale = getMinTimelineScale();
     renderTimeline();
   });
 

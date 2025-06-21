@@ -45,6 +45,13 @@ header h1 {
   color: #333;
 }
 
+.header-actions {
+  /* Container for buttons in header */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .icon-btn {
   background-color: #e9ecef;
   border: 1px solid #ced4da;
@@ -81,8 +88,8 @@ main {
   padding: 10px;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  flex-wrap: wrap; /* Allow wrapping if too many controls */
-  gap: 10px; /* Gap between control groups */
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .day-selector {
@@ -121,13 +128,17 @@ main {
   background-color: #f8f9fa;
   cursor: pointer;
   border-radius: 4px;
+  font-size: 0.9em; /* Ensure Fit button has same font size */
+}
+.zoom-controls button:hover {
+  /* Hover for all zoom buttons */
+  background-color: #e9ecef;
 }
 .zoom-controls span {
   font-size: 0.9em;
   color: #555;
 }
 
-/* Added styles for data management controls */
 .data-management-controls {
   display: flex;
   align-items: center;
@@ -145,22 +156,21 @@ main {
 .data-management-controls button:hover {
   background-color: #e9ecef;
 }
-/* End of added styles */
 
 #timeline-container-wrapper {
   width: 100%;
   overflow-x: auto;
-  background-color: #e0f2fe; /* Light blue background for timeline area */
+  background-color: #e0f2fe;
   border: 1px solid #b0dffc;
   border-radius: 6px;
   margin-bottom: 20px;
-  padding-bottom: 10px; /* Space for scrollbar without overlapping content */
+  padding-bottom: 10px;
 }
 
 #timeline-container {
   position: relative;
-  min-height: 150px; /* Minimum height for the timeline area */
-  padding-top: 30px; /* Space for time ruler */
+  min-height: 150px;
+  padding-top: 30px;
 }
 
 #time-ruler {
@@ -205,7 +215,7 @@ main {
 
 #timeline-events {
   position: relative;
-  height: 100px; /* Base height, can grow if events overlap more */
+  height: 100px;
 }
 
 .event-block {
@@ -220,7 +230,7 @@ main {
   cursor: grab;
   display: flex;
   align-items: center;
-  justify-content: space-between; /* For title and resize handles */
+  justify-content: space-between;
   overflow: hidden;
   box-sizing: border-box;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -236,7 +246,7 @@ main {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 0 5px; /* Padding around title */
+  padding: 0 5px;
   flex-grow: 1;
   text-align: center;
 }
@@ -246,7 +256,7 @@ main {
   height: 100%;
   position: absolute;
   top: 0;
-  z-index: 20; /* Above event block content */
+  z-index: 20;
 }
 
 .resize-handle.left {
@@ -292,24 +302,50 @@ main {
 }
 
 .event-color-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  /* Now an input type=color */
+  width: 20px; /* Increased size for easier interaction */
+  height: 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0;
   margin-right: 10px;
   flex-shrink: 0;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: transparent; /* Allows browser to show color swatch */
+}
+.event-color-dot::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.event-color-dot::-webkit-color-swatch {
+  border: none;
+  border-radius: 3px; /* Match parent */
+}
+.event-color-dot::-moz-color-swatch {
+  /* For Firefox */
+  border: none;
+  border-radius: 3px; /* Match parent */
+  width: 100%;
+  height: 100%;
 }
 
 .event-time {
   margin-right: 15px;
   font-size: 0.9em;
   color: #555;
-  min-width: 130px; /* Ensure consistent alignment */
+  min-width: 130px;
 }
 
 .event-title {
   font-weight: 500;
   flex-grow: 1;
   margin-right: 5px;
+  cursor: pointer; /* Indicate title is clickable for details */
+}
+.event-title:hover {
+  text-decoration: underline;
 }
 
 .event-actions button {
