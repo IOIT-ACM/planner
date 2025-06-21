@@ -706,3 +706,48 @@ dialog::backdrop {
   opacity: 1;
   transform: scale(1);
 }
+
+/* Custom Dialog Styles */
+#custom-dialog {
+  max-width: 400px;
+  max-height: auto;
+}
+
+#custom-dialog h2 {
+  font-size: 1.2em;
+  color: var(--color-olive-dark);
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+#custom-dialog p {
+  margin-bottom: 20px;
+  line-height: 1.5;
+  color: var(--color-olive-dark);
+}
+
+#custom-dialog .dialog-buttons button.confirm-btn {
+  background-color: var(--color-sand);
+  color: var(--color-olive-dark);
+}
+#custom-dialog .dialog-buttons button.confirm-btn:hover {
+  background-color: var(--color-brown);
+  color: var(--color-cream);
+}
+
+#custom-dialog .dialog-buttons button.cancel-btn {
+  background-color: var(--color-olive-medium);
+  color: var(--color-cream);
+}
+#custom-dialog .dialog-buttons button.cancel-btn:hover {
+  background-color: var(--color-olive-dark);
+}
+
+#custom-dialog .dialog-buttons button.alert-ok-btn {
+  background-color: var(--color-sand);
+  color: var(--color-olive-dark);
+}
+#custom-dialog .dialog-buttons button.alert-ok-btn:hover {
+  background-color: var(--color-brown);
+  color: var(--color-cream);
+}

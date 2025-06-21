@@ -39,6 +39,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const clearAllDataBtn = document.getElementById("clear-all-data-btn");
   const timelineTooltip = document.getElementById("timeline-tooltip");
 
+  const customDialog = document.getElementById("custom-dialog");
+  const customDialogTitle = document.getElementById("custom-dialog-title");
+  const customDialogMessage = document.getElementById("custom-dialog-message");
+  const customDialogButtons = document.getElementById("custom-dialog-buttons");
+
   let events = [];
   let currentDay = 1;
   let maxDays = 1;
@@ -54,6 +59,54 @@ document.addEventListener("DOMContentLoaded", () => {
   let resizeHandleType = null;
   let initialEventRect = null;
   let mouseDownPos = null;
+
+  function showCustomAlert(message, title = "Alert") {
+    customDialogTitle.textContent = title;
+    customDialogMessage.textContent = message;
+    customDialogButtons.innerHTML = "";
+
+    const okButton = document.createElement("button");
+    okButton.textContent = "OK";
+    okButton.classList.add("alert-ok-btn");
+    okButton.addEventListener("click", () => customDialog.close());
+    customDialogButtons.appendChild(okButton);
+    customDialog.showModal();
+  }
+
+  function showCustomConfirm(
+    message,
+    title = "Confirm",
+    onConfirmCallback,
+    onCancelCallback,
+  ) {
+    customDialogTitle.textContent = title;
+    customDialogMessage.innerHTML = message;
+    customDialogButtons.innerHTML = "";
+
+    const confirmButton = document.createElement("button");
+    confirmButton.textContent = "Confirm";
+    confirmButton.classList.add("confirm-btn");
+    confirmButton.addEventListener("click", () => {
+      customDialog.close();
+      if (typeof onConfirmCallback === "function") {
+        onConfirmCallback();
+      }
+    });
+
+    const cancelButton = document.createElement("button");
+    cancelButton.textContent = "Cancel";
+    cancelButton.classList.add("cancel-btn");
+    cancelButton.addEventListener("click", () => {
+      customDialog.close();
+      if (typeof onCancelCallback === "function") {
+        onCancelCallback();
+      }
+    });
+
+    customDialogButtons.appendChild(cancelButton);
+    customDialogButtons.appendChild(confirmButton);
+    customDialog.showModal();
+  }
 
   function parseTimeToMinutes(timeStr) {
     if (!timeStr) return 0;
@@ -392,6 +445,22 @@ document.addEventListener("DOMContentLoaded", () => {
         editBtn.addEventListener("click", () => openEditDialog(event.id));
         actionsSpan.appendChild(editBtn);
 
+        const deleteListBtn = document.createElement("button");
+        deleteListBtn.innerHTML = "🗑️";
+        deleteListBtn.title = "Delete Event";
+        deleteListBtn.addEventListener("click", () => {
+          showCustomConfirm(
+            `Are you sure you want to delete the event "<strong>${event.title}</strong>"?`,
+            "Delete Event",
+            () => {
+              events = events.filter((ev) => ev.id !== event.id);
+              saveEvents();
+              renderAll();
+            },
+          );
+        });
+        actionsSpan.appendChild(deleteListBtn);
+
         const chevronBtn = document.createElement("button");
         chevronBtn.innerHTML = "▼";
         chevronBtn.title = "Toggle Details";
@@ -474,7 +543,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const endMinutes = parseTimeToMinutes(eventEndTimeInput.value);
 
     if (startMinutes >= endMinutes) {
-      alert("End time must be after start time.");
+      showCustomAlert("End time must be after start time.", "Validation Error");
       return;
     }
 
@@ -504,11 +573,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   deleteEventBtn.addEventListener("click", () => {
     const id = eventIdInput.value;
-    if (id && confirm("Are you sure you want to delete this event?")) {
-      events = events.filter((event) => event.id !== id);
-      saveEvents();
-      renderAll();
-      eventDialog.close();
+    if (id) {
+      showCustomConfirm(
+        "Are you sure you want to delete this event?",
+        "Delete Event",
+        () => {
+          events = events.filter((event) => event.id !== id);
+          saveEvents();
+          renderAll();
+          eventDialog.close();
+        },
+      );
     }
   });
 
@@ -719,7 +794,7 @@ document.addEventListener("DOMContentLoaded", () => {
           draggingEvent = null;
           mouseDownPos = null;
           document.body.style.cursor = "default";
-          renderAll(); // To reset any visual cues if needed
+          renderAll();
           return;
         }
 
@@ -829,33 +904,40 @@ document.addEventListener("DOMContentLoaded", () => {
           Array.isArray(importedData.events) &&
           typeof importedData.maxDays === "number"
         ) {
-          if (
-            confirm(
-              "Importing this file will overwrite current data. Continue?",
-            )
-          ) {
-            events = importedData.events;
-            maxDays = importedData.maxDays || 1;
-            if (maxDays === 0) maxDays = 1;
-            currentDay = 1;
-            saveEvents();
-            updateDaySelectOptions();
-            renderAll();
-          }
+          showCustomConfirm(
+            "Importing this file will overwrite current data. Continue?",
+            "Import Data",
+            () => {
+              events = importedData.events;
+              maxDays = importedData.maxDays || 1;
+              if (maxDays === 0) maxDays = 1;
+              currentDay = 1;
+              saveEvents();
+              updateDaySelectOptions();
+              renderAll();
+            },
+          );
         } else {
-          alert("Invalid file format. Expected { events: [], maxDays: N }");
+          showCustomAlert(
+            "Invalid file format. Expected { events: [], maxDays: N }",
+            "Import Error",
+          );
         }
       } catch (error) {
-        alert("Error parsing JSON file: " + error.message);
+        showCustomAlert(
+          "Error parsing JSON file: " + error.message,
+          "Import Error",
+        );
       } finally {
         importFileInput.value = null;
       }
     };
     reader.onerror = () => {
-      alert("Error reading file.");
+      showCustomAlert("Error reading file.", "Import Error");
       importFileInput.value = null;
     };
     reader.readAsText(file);
+    FitTimelineOnPage();
   }
 
   exportDataBtn.addEventListener("click", handleExportData);
@@ -866,62 +948,57 @@ document.addEventListener("DOMContentLoaded", () => {
     const isDeleteAction = clearDayBtn.textContent === "Delete Day";
 
     if (isDeleteAction) {
-      if (
-        confirm(
-          `Do you really want to delete Day ${currentDay}? This action cannot be undone.`,
-        )
-      ) {
-        const dayToDelete = currentDay;
-
-        events.forEach((event) => {
-          if (event.day > dayToDelete) {
-            event.day -= 1;
+      showCustomConfirm(
+        `Do you really want to delete Day ${currentDay}? This action cannot be undone.`,
+        "Delete Day",
+        () => {
+          const dayToDelete = currentDay;
+          events.forEach((event) => {
+            if (event.day > dayToDelete) {
+              event.day -= 1;
+            }
+          });
+          events = events.filter((event) => event.day !== dayToDelete);
+          maxDays -= 1;
+          if (maxDays === 0) {
+            maxDays = 1;
+            currentDay = 1;
+          } else if (currentDay > maxDays) {
+            currentDay = maxDays;
           }
-        });
-        events = events.filter((event) => event.day !== dayToDelete);
-
-        maxDays -= 1;
-
-        if (maxDays === 0) {
-          maxDays = 1;
-          currentDay = 1;
-        } else if (currentDay > maxDays) {
-          currentDay = maxDays;
-        }
-
-        currentDay = Math.max(1, currentDay);
-
-        saveEvents();
-        updateDaySelectOptions();
-        renderAll();
-      }
+          currentDay = Math.max(1, currentDay);
+          saveEvents();
+          updateDaySelectOptions();
+          renderAll();
+        },
+      );
     } else {
-      if (
-        confirm(
-          `Do you really want to delete all events for Day ${currentDay}? This action cannot be undone.`,
-        )
-      ) {
-        events = events.filter((event) => event.day !== currentDay);
-        saveEvents();
-        renderAll();
-      }
+      showCustomConfirm(
+        `Do you really want to delete all events for Day ${currentDay}? This action cannot be undone.`,
+        "Clear Day Events",
+        () => {
+          events = events.filter((event) => event.day !== currentDay);
+          saveEvents();
+          renderAll();
+        },
+      );
     }
   });
 
   clearAllDataBtn.addEventListener("click", () => {
-    if (
-      confirm(
-        "Do you really want to delete ALL data for ALL days? This action cannot be undone and will reset the planner.",
-      )
-    ) {
-      events = [];
-      maxDays = 1;
-      currentDay = 1;
-      saveEvents();
-      updateDaySelectOptions();
-      renderAll();
-      alert("All data has been cleared.");
-    }
+    showCustomConfirm(
+      "Do you really want to delete ALL data for ALL days? This action cannot be undone and will reset the planner.",
+      "Clear All Data",
+      () => {
+        events = [];
+        maxDays = 1;
+        currentDay = 1;
+        saveEvents();
+        updateDaySelectOptions();
+        renderAll();
+        showCustomAlert("All data has been cleared.", "Success");
+      },
+    );
   });
 
   function renderAll() {
