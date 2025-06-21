@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IOIT ACM Event Planner</title>
+    <link rel="stylesheet" href="./index.css" />
+  </head>
+  <body>
+    <header>
+      <div class="logo-title">
+        <div class="acm-logo-shape">acm</div>
+        <h1>IOIT ACM Event Planner</h1>
+      </div>
+      <div class="data-management-controls">
+        <div class="data-management-controls">
+          <button id="export-data-btn" title="Export Data">Export</button>
+          <button id="import-data-btn" title="Import Data">Import</button>
+          <input
+            type="file"
+            id="import-file-input"
+            accept=".json"
+            style="display: none"
+          />
+        </div>
+
+        <button id="add-event-btn" class="icon-btn" title="Add New Event">
+          +
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <div class="controls-panel">
+        <div id="day-tabs-container" class="day-selector"></div>
+        <div class="zoom-controls">
+          <button id="zoom-out-btn" title="Zoom Out">-</button>
+          <span>Zoom</span>
+          <button id="zoom-in-btn" title="Zoom In">+</button>
+        </div>
+      </div>
+
+      <div id="timeline-container-wrapper">
+        <div id="timeline-container">
+          <div id="time-ruler"></div>
+          <div id="timeline-events"></div>
+        </div>
+      </div>
+
+      <div id="event-list-panel">
+        <h2 id="current-day-list-title">Events for Day 1</h2>
+        <ul id="event-list"></ul>
+      </div>
+    </main>
+
+    <dialog id="event-dialog">
+      <form id="event-form">
+        <h2 id="dialog-title">Add Event</h2>
+        <input type="hidden" id="event-id" />
+        <div>
+          <label for="event-title-input">Title:</label>
+          <input type="text" id="event-title-input" required />
+        </div>
+        <div>
+          <label for="event-day-select">Day:</label>
+          <select id="event-day-select"></select>
+        </div>
+        <div>
+          <label for="event-start-time">Start Time:</label>
+          <input type="time" id="event-start-time" required />
+        </div>
+        <div>
+          <label for="event-end-time">End Time:</label>
+          <input type="time" id="event-end-time" required />
+        </div>
+        <div>
+          <label for="event-category">Category:</label>
+          <select id="event-category">
+            <option value="workshop">Workshop</option>
+            <option value="keynote">Keynote</option>
+            <option value="break">Break</option>
+            <option value="social">Social</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="event-color">Color:</label>
+          <input type="color" id="event-color" value="#3498db" />
+        </div>
+        <div>
+          <label for="event-speaker">Speaker:</label>
+          <input type="text" id="event-speaker" />
+        </div>
+        <div>
+          <label for="event-location">Location:</label>
+          <input type="text" id="event-location" />
+        </div>
+        <div>
+          <label for="event-notes">Notes:</label>
+          <textarea id="event-notes"></textarea>
+        </div>
+        <div>
+          <label for="event-attachments">Attachments (comma-separated):</label>
+          <input type="text" id="event-attachments" />
+        </div>
+        <div class="dialog-buttons">
+          <button type="submit" id="save-event-btn">Save</button>
+          <button type="button" id="delete-event-btn" style="display: none">
+            Delete
+          </button>
+          <button type="button" id="cancel-event-btn">Cancel</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="./index.js"></script>
+  </body>
+</html>

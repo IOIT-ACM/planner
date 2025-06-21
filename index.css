@@ -1,0 +1,432 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  margin: 0;
+  background-color: #f4f7f6;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+header {
+  background-color: #fff;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.logo-title {
+  display: flex;
+  align-items: center;
+}
+
+.acm-logo-shape {
+  width: 36px;
+  height: 36px;
+  background-color: #0072c6;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 12px;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+header h1 {
+  font-size: 1.4em;
+  margin: 0;
+  color: #333;
+}
+
+.icon-btn {
+  background-color: #e9ecef;
+  border: 1px solid #ced4da;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #495057;
+  transition: background-color 0.2s;
+}
+
+.icon-btn:hover {
+  background-color: #dee2e6;
+}
+
+main {
+  flex-grow: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.controls-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  flex-wrap: wrap; /* Allow wrapping if too many controls */
+  gap: 10px; /* Gap between control groups */
+}
+
+.day-selector {
+  display: flex;
+  gap: 5px;
+}
+
+.day-tab,
+#add-day-btn {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+#add-day-btn {
+  font-weight: bold;
+}
+
+.day-tab.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zoom-controls button {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.zoom-controls span {
+  font-size: 0.9em;
+  color: #555;
+}
+
+/* Added styles for data management controls */
+.data-management-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.data-management-controls button {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+.data-management-controls button:hover {
+  background-color: #e9ecef;
+}
+/* End of added styles */
+
+#timeline-container-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  background-color: #e0f2fe; /* Light blue background for timeline area */
+  border: 1px solid #b0dffc;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  padding-bottom: 10px; /* Space for scrollbar without overlapping content */
+}
+
+#timeline-container {
+  position: relative;
+  min-height: 150px; /* Minimum height for the timeline area */
+  padding-top: 30px; /* Space for time ruler */
+}
+
+#time-ruler {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 30px;
+  display: flex;
+  font-size: 0.75em;
+  color: #333;
+  border-bottom: 1px solid #b0dffc;
+}
+
+.time-tick {
+  position: absolute;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #0284c7;
+}
+
+.time-tick span {
+  position: absolute;
+  top: 5px;
+  transform: translateX(-50%);
+}
+
+.time-tick::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 10px;
+  background-color: #7dd3fc;
+}
+.time-tick.major::before {
+  height: 15px;
+  background-color: #0ea5e9;
+}
+
+#timeline-events {
+  position: relative;
+  height: 100px; /* Base height, can grow if events overlap more */
+}
+
+.event-block {
+  position: absolute;
+  height: 40px;
+  background-color: #3498db;
+  color: white;
+  border: 1px solid #2980b9;
+  border-radius: 4px;
+  padding: 0 5px;
+  font-size: 0.8em;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* For title and resize handles */
+  overflow: hidden;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.event-block:active {
+  cursor: grabbing;
+  z-index: 100;
+}
+
+.event-block-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 5px; /* Padding around title */
+  flex-grow: 1;
+  text-align: center;
+}
+
+.resize-handle {
+  width: 8px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  z-index: 20; /* Above event block content */
+}
+
+.resize-handle.left {
+  left: 0;
+  cursor: ew-resize;
+}
+
+.resize-handle.right {
+  right: 0;
+  cursor: ew-resize;
+}
+
+#event-list-panel {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+#event-list-panel h2 {
+  margin-top: 0;
+  font-size: 1.2em;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+#event-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.event-list-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.event-list-item:last-child {
+  border-bottom: none;
+}
+
+.event-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.event-time {
+  margin-right: 15px;
+  font-size: 0.9em;
+  color: #555;
+  min-width: 130px; /* Ensure consistent alignment */
+}
+
+.event-title {
+  font-weight: 500;
+  flex-grow: 1;
+  margin-right: 5px;
+}
+
+.event-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1em;
+  padding: 2px 5px;
+  color: #555;
+}
+.event-actions button:hover {
+  color: #000;
+}
+
+.event-details {
+  width: 100%;
+  background-color: #f9f9f9;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: #444;
+  border: 1px solid #eee;
+}
+
+.event-details p {
+  margin: 5px 0;
+}
+.event-details strong {
+  color: #333;
+}
+
+dialog {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  width: 80%;
+  max-width: 500px;
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+#event-form div {
+  margin-bottom: 12px;
+}
+
+#event-form label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+  font-size: 0.9em;
+}
+
+#event-form input[type="text"],
+#event-form input[type="time"],
+#event-form input[type="color"],
+#event-form select,
+#event-form textarea {
+  width: calc(100% - 12px);
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9em;
+  box-sizing: border-box;
+}
+#event-form input[type="color"] {
+  height: 35px;
+  padding: 2px;
+}
+
+#event-form textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.dialog-buttons button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+#save-event-btn {
+  background-color: #007bff;
+  color: white;
+}
+#save-event-btn:hover {
+  background-color: #0056b3;
+}
+
+#delete-event-btn {
+  background-color: #dc3545;
+  color: white;
+}
+#delete-event-btn:hover {
+  background-color: #c82333;
+}
+
+#cancel-event-btn {
+  background-color: #6c757d;
+  color: white;
+}
+#cancel-event-btn:hover {
+  background-color: #545b62;
+}
+
+.hidden {
+  display: none !important;
+}
