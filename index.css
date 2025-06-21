@@ -717,6 +717,15 @@ dialog::backdrop {
   color: var(--color-cream);
 }
 
+#duplicate-event-btn {
+  background-color: var(--color-olive-medium-light);
+  color: var(--color-olive-dark);
+}
+#duplicate-event-btn:hover {
+  background-color: var(--color-olive-medium);
+  color: var(--color-cream);
+}
+
 #delete-event-btn {
   background-color: var(--color-brown);
   color: var(--color-cream);

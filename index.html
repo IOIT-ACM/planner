@@ -91,14 +91,31 @@
           <label>Day:</label>
           <div id="event-day-radio-group" class="event-day-radio-group"></div>
         </div>
-        <div style="display: flex; gap: 10px; width: 100%; justify-content: space-between;">
-          <div style="flex: 1;">
+        <div
+          style="
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            justify-content: space-between;
+          "
+        >
+          <div style="flex: 1">
             <label for="event-start-time">Start Time:</label>
-            <input type="time" id="event-start-time" required style="width: 100%;" />
+            <input
+              type="time"
+              id="event-start-time"
+              required
+              style="width: 100%"
+            />
           </div>
-          <div style="flex: 1;">
+          <div style="flex: 1">
             <label for="event-end-time">End Time:</label>
-            <input type="time" id="event-end-time" required style="width: 100%;" />
+            <input
+              type="time"
+              id="event-end-time"
+              required
+              style="width: 100%"
+            />
           </div>
         </div>
         <div>
@@ -115,6 +132,9 @@
         </div>
         <div class="dialog-buttons">
           <button type="submit" id="save-event-btn">Save</button>
+          <button type="button" id="duplicate-event-btn" style="display: none">
+            Duplicate
+          </button>
           <button type="button" id="delete-event-btn" style="display: none">
             Delete
           </button>

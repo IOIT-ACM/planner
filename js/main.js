@@ -4,6 +4,7 @@ function initApp() {
   const eventForm = document.getElementById("event-form");
   const cancelEventBtn = document.getElementById("cancel-event-btn");
   const deleteEventBtn = document.getElementById("delete-event-btn");
+  const duplicateEventBtn = document.getElementById("duplicate-event-btn");
   const dialogTitle = document.getElementById("dialog-title");
   const eventIdInput = document.getElementById("event-id");
   const eventTitleInput = document.getElementById("event-title-input");
@@ -421,6 +422,7 @@ function initApp() {
     }
     eventColorInput.value = "#3498db";
     deleteEventBtn.style.display = "none";
+    duplicateEventBtn.style.display = "none";
     if (eventDialog.showModal) eventDialog.showModal();
   }
 
@@ -445,6 +447,7 @@ function initApp() {
     eventNotesInput.value = event.notes || "";
 
     deleteEventBtn.style.display = "inline-block";
+    duplicateEventBtn.style.display = "inline-block";
     if (eventDialog.showModal) eventDialog.showModal();
   }
 
@@ -505,6 +508,52 @@ function initApp() {
         },
       );
     }
+  });
+
+  duplicateEventBtn.addEventListener("click", () => {
+    const idToDuplicate = eventIdInput.value;
+    if (!idToDuplicate) return;
+
+    const startTimeValue = eventStartTimeInput.value;
+    const endTimeValue = eventEndTimeInput.value;
+
+    const startMinutes = parseTimeToMinutes(startTimeValue);
+    const endMinutes = getInterpretedEndMinutes(startTimeValue, endTimeValue);
+
+    if (startMinutes >= endMinutes) {
+      showCustomAlert(
+        "End time must be after start time to duplicate.",
+        "Validation Error",
+      );
+      return;
+    }
+
+    const selectedDayRadio = eventDayRadioGroup.querySelector(
+      'input[name="event-day"]:checked',
+    );
+    if (!selectedDayRadio) {
+      showCustomAlert(
+        "Please select a day for the event to duplicate.",
+        "Validation Error",
+      );
+      return;
+    }
+
+    const newEvent = {
+      id: Date.now().toString(),
+      title: eventTitleInput.value + " (Copy)",
+      day: parseInt(selectedDayRadio.value),
+      startTime: startTimeValue,
+      endTime: endTimeValue,
+      color: eventColorInput.value,
+      location: eventLocationInput.value,
+      notes: eventNotesInput.value,
+    };
+
+    events.push(newEvent);
+    saveEvents();
+    renderAll();
+    eventDialog.close();
   });
 
   addEventBtn.addEventListener("click", openAddDialog);
