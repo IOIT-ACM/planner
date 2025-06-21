@@ -1,0 +1,275 @@
+{
+  "events": [
+    {
+      "id": "event-1",
+      "title": "Tenet Inauguration ceremony",
+      "day": 1,
+      "startTime": "08:30",
+      "endTime": "10:30",
+      "color": "#8e44ad",
+      "location": "Multipurpose Hall (MPH)",
+      "attachments": ""
+    },
+    {
+      "id": "event-2",
+      "title": "Den Of Code (Experience Zone)",
+      "day": 1,
+      "startTime": "11:00",
+      "endTime": "16:00",
+      "color": "#e67e22",
+      "location": "Admin Area, IOIT",
+      "attachments": ""
+    },
+    {
+      "id": "event-3",
+      "title": "Capture the Flag",
+      "day": 1,
+      "startTime": "11:00",
+      "endTime": "18:00",
+      "color": "#e67e22",
+      "location": "AISSMS IOIT 112, 405",
+      "attachments": ""
+    },
+    {
+      "id": "event-4",
+      "title": "AI summit panel",
+      "day": 1,
+      "startTime": "11:15",
+      "endTime": "12:15",
+      "color": "#2980b9",
+      "location": "Multipurpose hall (MPH)",
+      "attachments": ""
+    },
+    {
+      "id": "event-5",
+      "title": "Drone Workshop",
+      "day": 1,
+      "startTime": "11:30",
+      "endTime": "17:00",
+      "color": "#27ae60",
+      "location": "Room 407",
+      "attachments": ""
+    },
+    {
+      "id": "event-6",
+      "title": "Web - 3 panel",
+      "day": 1,
+      "startTime": "12:30",
+      "endTime": "13:45",
+      "color": "#2980b9",
+      "location": "COE Auditorium",
+      "attachments": ""
+    },
+    {
+      "id": "event-7",
+      "title": "First Steps into Development: A Beginner's Guide",
+      "day": 1,
+      "startTime": "12:30",
+      "endTime": "13:45",
+      "color": "#27ae60",
+      "location": "Multipurpose Hall (MPH)",
+      "attachments": ""
+    },
+    {
+      "id": "event-8",
+      "title": "Product Management in Tech",
+      "day": 1,
+      "startTime": "14:00",
+      "endTime": "15:00",
+      "color": "#3498db",
+      "location": "Multipurpose hall (MPH)",
+      "attachments": ""
+    },
+    {
+      "id": "event-9",
+      "title": "Exploring the Depths of AR/VR",
+      "day": 1,
+      "startTime": "14:00",
+      "endTime": "15:00",
+      "color": "#3498db",
+      "location": "COE Auditorium",
+      "attachments": ""
+    },
+    {
+      "id": "event-10",
+      "title": "Machine learning unleashed",
+      "day": 1,
+      "startTime": "14:00",
+      "endTime": "15:00",
+      "color": "#3498db",
+      "location": "Room 206",
+      "attachments": ""
+    },
+    {
+      "id": "event-11",
+      "title": "BGMI LAN Event",
+      "day": 2,
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "color": "#d35400",
+      "location": "MPH",
+      "attachments": ""
+    },
+    {
+      "id": "event-12",
+      "title": "FIFA (FC 24) PS5 Console Event",
+      "day": 2,
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "color": "#d35400",
+      "location": "Room 111, 113, 114",
+      "attachments": ""
+    },
+    {
+      "id": "event-13",
+      "title": "Valorant",
+      "day": 2,
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "color": "#d35400",
+      "location": "Online",
+      "attachments": ""
+    },
+    {
+      "id": "event-14",
+      "title": "MUN Breakfast and Reporting (Day 2)",
+      "day": 2,
+      "startTime": "08:00",
+      "endTime": "09:00",
+      "color": "#bdc3c7",
+      "location": "Admin Office",
+      "attachments": ""
+    },
+    {
+      "id": "event-15",
+      "title": "IOIT MUN Opening Ceremony",
+      "day": 2,
+      "startTime": "09:00",
+      "endTime": "11:00",
+      "color": "#8e44ad",
+      "location": "MPH",
+      "attachments": ""
+    },
+    {
+      "id": "event-16",
+      "title": "MUN Committee Session 1 (Day 2)",
+      "day": 2,
+      "startTime": "11:00",
+      "endTime": "14:00",
+      "color": "#f1c40f",
+      "location": "AISSMS IOIT",
+      "attachments": ""
+    },
+    {
+      "id": "event-17",
+      "title": "MUN Lunch (Day 2)",
+      "day": 2,
+      "startTime": "14:00",
+      "endTime": "15:00",
+      "color": "#bdc3c7",
+      "location": "3rd Floor Terrace",
+      "attachments": ""
+    },
+    {
+      "id": "event-18",
+      "title": "MUN High tea (Day 2)",
+      "day": 2,
+      "startTime": "17:00",
+      "endTime": "17:30",
+      "color": "#bdc3c7",
+      "location": "In hand",
+      "attachments": ""
+    },
+    {
+      "id": "event-19",
+      "title": "MUN Breakfast and Reporting (Day 3)",
+      "day": 3,
+      "startTime": "09:00",
+      "endTime": "10:00",
+      "color": "#bdc3c7",
+      "location": "Admin Office, 3rd Floor",
+      "attachments": ""
+    },
+    {
+      "id": "event-20",
+      "title": "Starting up in College",
+      "day": 3,
+      "startTime": "10:00",
+      "endTime": "11:15",
+      "color": "#16a085",
+      "location": "IOIT MPH",
+      "attachments": ""
+    },
+    {
+      "id": "event-21",
+      "title": "HR Summit",
+      "day": 3,
+      "startTime": "11:15",
+      "endTime": "12:15",
+      "color": "#16a085",
+      "location": "Room 407",
+      "attachments": ""
+    },
+    {
+      "id": "event-22",
+      "title": "HR Summit 2",
+      "day": 3,
+      "startTime": "11:15",
+      "endTime": "12:15",
+      "color": "#16a085",
+      "location": "Multipurpose Hall",
+      "attachments": ""
+    },
+    {
+      "id": "event-23",
+      "title": "MUN Lunch (Day 3)",
+      "day": 3,
+      "startTime": "13:00",
+      "endTime": "14:00",
+      "color": "#bdc3c7",
+      "location": "3rd Floor Terrace",
+      "attachments": ""
+    },
+    {
+      "id": "event-24",
+      "title": "Venture Summit",
+      "day": 3,
+      "startTime": "14:15",
+      "endTime": "15:15",
+      "color": "#16a085",
+      "location": "Auditorium, Pharma",
+      "attachments": ""
+    },
+    {
+      "id": "event-25",
+      "title": "MUN Committee Session 2 (Day 3)",
+      "day": 3,
+      "startTime": "15:00",
+      "endTime": "16:00",
+      "color": "#f1c40f",
+      "location": "AISSMS IOIT",
+      "attachments": ""
+    },
+    {
+      "id": "event-26",
+      "title": "MUN Valedictory Ceremony",
+      "day": 3,
+      "startTime": "16:00",
+      "endTime": "17:00",
+      "color": "#8e44ad",
+      "location": "MPH",
+      "attachments": ""
+    },
+    {
+      "id": "event-27",
+      "title": "Investing Arena TENET'24",
+      "day": 3,
+      "startTime": "16:00",
+      "endTime": "19:00",
+      "color": "#c0392b",
+      "location": "AISSMS IOIT",
+      "attachments": ""
+    }
+  ],
+  "maxDays": 3
+}

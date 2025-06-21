@@ -1,0 +1,203 @@
+{
+  "events": [
+    {
+      "id": "event-2",
+      "title": "AI Session Series",
+      "day": 1,
+      "startTime": "11:15",
+      "endTime": "13:15",
+      "color": "#2980b9",
+      "location": "Multipurpose hall (MPH)",
+      "notes": ""
+    },
+    {
+      "id": "event-3",
+      "title": "Drone Workshop",
+      "day": 1,
+      "startTime": "11:30",
+      "endTime": "17:00",
+      "color": "#27ae60",
+      "location": "Room 407"
+    },
+    {
+      "id": "event-4",
+      "title": "Hackathon Day 1",
+      "day": 1,
+      "startTime": "12:00",
+      "endTime": "23:59",
+      "color": "#f39c12",
+      "location": "Main Auditorium"
+    },
+    {
+      "id": "event-5",
+      "title": "Web Workshop Series",
+      "day": 1,
+      "startTime": "14:15",
+      "endTime": "17:00",
+      "color": "#27ae60",
+      "location": "Multipurpose Hall (MPH)",
+      "notes": ""
+    },
+    {
+      "id": "event-6",
+      "title": "Hackathon Day 2",
+      "day": 2,
+      "startTime": "00:00",
+      "endTime": "12:00",
+      "color": "#f39c12",
+      "location": "Main Auditorium"
+    },
+    {
+      "id": "event-7",
+      "title": "MUN Breakfast and Reporting (Day 2)",
+      "day": 2,
+      "startTime": "08:00",
+      "endTime": "09:00",
+      "color": "#bdc3c7",
+      "location": "Admin Office"
+    },
+    {
+      "id": "event-8",
+      "title": "LAN Event",
+      "day": 2,
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "color": "#d35400",
+      "location": "MPH"
+    },
+    {
+      "id": "event-9",
+      "title": "IOIT MUN Opening Ceremony",
+      "day": 2,
+      "startTime": "09:00",
+      "endTime": "11:00",
+      "color": "#c763f2",
+      "location": "MPH"
+    },
+    {
+      "id": "event-10",
+      "title": "MUN Committee Session 1 (Day 2)",
+      "day": 2,
+      "startTime": "11:00",
+      "endTime": "14:00",
+      "color": "#f1c40f",
+      "location": "AISSMS IOIT"
+    },
+    {
+      "id": "event-11",
+      "title": "MUN Lunch (Day 2)",
+      "day": 2,
+      "startTime": "14:00",
+      "endTime": "15:00",
+      "color": "#bdc3c7",
+      "location": "3rd Floor Terrace"
+    },
+    {
+      "id": "event-12",
+      "title": "MUN High tea (Day 2)",
+      "day": 2,
+      "startTime": "17:00",
+      "endTime": "17:30",
+      "color": "#bdc3c7",
+      "location": "In hand"
+    },
+    {
+      "id": "event-13",
+      "title": "MUN Breakfast and Reporting (Day 3)",
+      "day": 3,
+      "startTime": "09:00",
+      "endTime": "10:00",
+      "color": "#bdc3c7",
+      "location": "Admin Office, 3rd Floor"
+    },
+    {
+      "id": "event-14",
+      "title": "MUN Lunch (Day 3)",
+      "day": 3,
+      "startTime": "13:00",
+      "endTime": "14:00",
+      "color": "#bdc3c7",
+      "location": "3rd Floor Terrace"
+    },
+    {
+      "id": "event-15",
+      "title": "MUN Committee Session 2 (Day 3)",
+      "day": 3,
+      "startTime": "11:00",
+      "endTime": "17:00",
+      "color": "#f1c40f",
+      "location": "AISSMS IOIT",
+      "notes": ""
+    },
+    {
+      "id": "event-16",
+      "title": "Investing Arena",
+      "day": 2,
+      "startTime": "11:45",
+      "endTime": "17:00",
+      "color": "#77d6ee",
+      "location": "AISSMS IOIT",
+      "notes": ""
+    },
+    {
+      "id": "event-17",
+      "title": "MUN Valedictory Ceremony",
+      "day": 3,
+      "startTime": "16:00",
+      "endTime": "17:00",
+      "color": "#8e44ad",
+      "location": "MPH"
+    },
+    {
+      "id": "1750543614165",
+      "title": "Inauguration ",
+      "day": 1,
+      "startTime": "08:30",
+      "endTime": "10:30",
+      "color": "#ea9ff9",
+      "location": "",
+      "notes": ""
+    },
+    {
+      "id": "1750544226736",
+      "title": "AI Session Series Day 2",
+      "day": 2,
+      "startTime": "11:15",
+      "endTime": "13:15",
+      "color": "#2980b9",
+      "location": "Multipurpose hall (MPH)",
+      "notes": ""
+    },
+    {
+      "id": "1750544238452",
+      "title": "Web Workshop Series Day 2",
+      "day": 2,
+      "startTime": "14:15",
+      "endTime": "17:00",
+      "color": "#27ae60",
+      "location": "Multipurpose Hall (MPH)",
+      "notes": ""
+    },
+    {
+      "id": "1750544259003",
+      "title": "AI Session Series Day 3",
+      "day": 3,
+      "startTime": "11:15",
+      "endTime": "13:15",
+      "color": "#2980b9",
+      "location": "Multipurpose hall (MPH)",
+      "notes": ""
+    },
+    {
+      "id": "1750544289918",
+      "title": "Web Workshop Series Day 3",
+      "day": 3,
+      "startTime": "14:15",
+      "endTime": "17:00",
+      "color": "#27ae60",
+      "location": "Multipurpose Hall (MPH)",
+      "notes": ""
+    }
+  ],
+  "maxDays": 3
+}
