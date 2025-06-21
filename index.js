@@ -70,6 +70,20 @@ document.addEventListener("DOMContentLoaded", () => {
   let initialEventRect = null;
   let mouseDownPos = null;
 
+  function snapToNearestQuarterHour(minutes) {
+    return Math.round(minutes / 15) * 15;
+  }
+
+  function getInterpretedEndMinutes(startTimeStr, endTimeStr) {
+    const startMinutes = parseTimeToMinutes(startTimeStr);
+    let endMinutes = parseTimeToMinutes(endTimeStr);
+
+    if (endTimeStr === "00:00" && startMinutes !== endMinutes) {
+      endMinutes = TIMELINE_END_HOUR * 60;
+    }
+    return endMinutes;
+  }
+
   function showCustomAlert(message, title = "Alert") {
     customDialogTitle.textContent = title;
     customDialogMessage.textContent = message;
@@ -135,9 +149,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function formatTimeForDisplay(timeStr24hr) {
     if (!timeStr24hr) return "";
+
+    if (timeStr24hr === "00:00") {
+    }
+
     const [hours, minutes] = timeStr24hr.split(":").map(Number);
-    const ampm = hours >= 12 ? "PM" : "AM";
-    const displayHours = hours % 12 || 12;
+    const ampm = hours >= 12 && hours < 24 ? "PM" : "AM";
+    let displayHours = hours % 12;
+    if (displayHours === 0) {
+      displayHours = 12;
+    }
     return `${displayHours}:${String(minutes).padStart(2, "0")} ${ampm}`;
   }
 
@@ -238,9 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderTimeline() {
-    // START OF MODIFIED SECTION
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
-    // END OF MODIFIED SECTION
 
     const pixelsPerMinute = timelineScale / 60;
     const timelineDurationHours = TIMELINE_END_HOUR - TIMELINE_START_HOUR;
@@ -256,14 +275,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const tickPosition = (hour - TIMELINE_START_HOUR) * timelineScale;
       tick.style.left = `${tickPosition}px`;
 
-      // START OF MODIFIED SECTION
       let showLabelAndMajor = false;
       if (isMobile) {
         if (hour % 3 === 0) {
           showLabelAndMajor = true;
         }
       } else {
-        // Desktop: show label and major tick for every hour
         showLabelAndMajor = true;
       }
 
@@ -271,21 +288,22 @@ document.addEventListener("DOMContentLoaded", () => {
         tick.classList.add("major");
         const label = document.createElement("span");
         label.textContent = formatTimeForDisplay(
-          `${String(hour).padStart(2, "0")}:00`,
+          `${String(hour % 24).padStart(2, "0")}:00`,
         );
         tick.appendChild(label);
       }
-      // END OF MODIFIED SECTION
 
       timeRuler.appendChild(tick);
 
-      // Half-hour ticks (these are always minor and unlabeled)
       if (hour < TIMELINE_END_HOUR) {
-        const halfHourTick = document.createElement("div");
-        halfHourTick.classList.add("time-tick"); // This will be a minor tick by CSS
-        const halfHourPosition = tickPosition + timelineScale / 2;
-        halfHourTick.style.left = `${halfHourPosition}px`;
-        timeRuler.appendChild(halfHourTick);
+        for (let j = 1; j <= 3; j++) {
+          const quarterTick = document.createElement("div");
+          quarterTick.classList.add("time-tick");
+          const quarterPosition = tickPosition + (timelineScale / 4) * j;
+          quarterTick.style.left = `${quarterPosition}px`;
+
+          timeRuler.appendChild(quarterTick);
+        }
       }
     }
 
@@ -303,7 +321,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     dayEvents.forEach((eventData) => {
       const startMinutes = parseTimeToMinutes(eventData.startTime);
-      const endMinutes = parseTimeToMinutes(eventData.endTime);
+
+      const endMinutes = getInterpretedEndMinutes(
+        eventData.startTime,
+        eventData.endTime,
+      );
+
       if (startMinutes >= endMinutes) return;
 
       const eventStartOffset =
@@ -353,7 +376,11 @@ document.addEventListener("DOMContentLoaded", () => {
           (ev) => ev.id === eventBlock.dataset.eventId,
         );
         if (currentEventData) {
-          timelineTooltip.innerHTML = `<strong>${currentEventData.title}</strong><br>${formatTimeForDisplay(currentEventData.startTime)} - ${formatTimeForDisplay(currentEventData.endTime)}`;
+          timelineTooltip.innerHTML = `<strong>${
+            currentEventData.title
+          }</strong><br>${formatTimeForDisplay(
+            currentEventData.startTime,
+          )} - ${formatTimeForDisplay(currentEventData.endTime)}`;
           timelineTooltip.classList.remove("hidden");
           updateTooltipPosition(e);
         }
@@ -510,7 +537,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 <tr><td>Speaker:</td><td>${event.speaker || "N/A"}</td></tr>
                 <tr><td>Location:</td><td>${event.location || "N/A"}</td></tr>
                 <tr><td>Notes:</td><td>${event.notes || "N/A"}</td></tr>
-                <tr><td>Attachments:</td><td>${event.attachments || "N/A"}</td></tr>
+                <tr><td>Attachments:</td><td>${
+                  event.attachments || "N/A"
+                }</td></tr>
             </table>
         `;
         li.appendChild(detailsDiv);
@@ -571,8 +600,12 @@ document.addEventListener("DOMContentLoaded", () => {
   eventForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const id = eventIdInput.value;
-    const startMinutes = parseTimeToMinutes(eventStartTimeInput.value);
-    const endMinutes = parseTimeToMinutes(eventEndTimeInput.value);
+    const startTimeValue = eventStartTimeInput.value;
+    const endTimeValue = eventEndTimeInput.value;
+
+    const startMinutes = parseTimeToMinutes(startTimeValue);
+
+    const endMinutes = getInterpretedEndMinutes(startTimeValue, endTimeValue);
 
     if (startMinutes >= endMinutes) {
       showCustomAlert("End time must be after start time.", "Validation Error");
@@ -583,8 +616,8 @@ document.addEventListener("DOMContentLoaded", () => {
       id: id || Date.now().toString(),
       title: eventTitleInput.value,
       day: parseInt(eventDaySelect.value),
-      startTime: eventStartTimeInput.value,
-      endTime: eventEndTimeInput.value,
+      startTime: startTimeValue,
+      endTime: endTimeValue,
       category: eventCategoryInput.value,
       color: eventColorInput.value,
       speaker: eventSpeakerInput.value,
@@ -650,9 +683,10 @@ document.addEventListener("DOMContentLoaded", () => {
           minEventStartMinutes,
           parseTimeToMinutes(event.startTime),
         );
+
         maxEventEndMinutes = Math.max(
           maxEventEndMinutes,
-          parseTimeToMinutes(event.endTime),
+          getInterpretedEndMinutes(event.startTime, event.endTime),
         );
       });
 
@@ -761,8 +795,11 @@ document.addEventListener("DOMContentLoaded", () => {
       newLeftPx = Math.max(0, newLeftPx);
 
       const eventDurationMinutes =
-        parseTimeToMinutes(draggingEvent.endTime) -
-        parseTimeToMinutes(draggingEvent.startTime);
+        getInterpretedEndMinutes(
+          draggingEvent.startTime,
+          draggingEvent.endTime,
+        ) - parseTimeToMinutes(draggingEvent.startTime);
+
       const maxLeftPx =
         (TIMELINE_END_HOUR - TIMELINE_START_HOUR) * 60 * pixelsPerMinute -
         eventDurationMinutes * pixelsPerMinute;
@@ -775,7 +812,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!eventBlock) return;
 
       const originalStartMinutes = parseTimeToMinutes(resizingEvent.startTime);
-      const originalEndMinutes = parseTimeToMinutes(resizingEvent.endTime);
+      const originalEndMinutes = getInterpretedEndMinutes(
+        resizingEvent.startTime,
+        resizingEvent.endTime,
+      );
+
       const originalStartPx =
         (originalStartMinutes - TIMELINE_START_HOUR * 60) * pixelsPerMinute;
       const originalWidthPx =
@@ -821,6 +862,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (distMoved < CLICK_THRESHOLD_PX) {
           openEditDialog(draggingEvent.id);
+
           eventBlock.style.cursor = "grab";
           eventBlock.style.zIndex = "10";
           draggingEvent = null;
@@ -831,24 +873,34 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const pixelsPerMinute = timelineScale / 60;
-        const newStartPx = parseFloat(eventBlock.style.left);
-        const currentDurationMinutes =
-          parseTimeToMinutes(draggingEvent.endTime) -
-          parseTimeToMinutes(draggingEvent.startTime);
+        const newLeftPx = parseFloat(eventBlock.style.left);
+        const eventDurationMinutes =
+          getInterpretedEndMinutes(
+            draggingEvent.startTime,
+            draggingEvent.endTime,
+          ) - parseTimeToMinutes(draggingEvent.startTime);
 
         let newStartMinutes =
-          Math.round(newStartPx / pixelsPerMinute) + TIMELINE_START_HOUR * 60;
+          Math.round(newLeftPx / pixelsPerMinute) + TIMELINE_START_HOUR * 60;
+
+        newStartMinutes = snapToNearestQuarterHour(newStartMinutes);
         newStartMinutes = Math.max(TIMELINE_START_HOUR * 60, newStartMinutes);
-        let newEndMinutes = newStartMinutes + currentDurationMinutes;
+
+        let newEndMinutes = newStartMinutes + eventDurationMinutes;
 
         if (newEndMinutes > TIMELINE_END_HOUR * 60) {
           newEndMinutes = TIMELINE_END_HOUR * 60;
-          newStartMinutes = newEndMinutes - currentDurationMinutes;
+          newStartMinutes = newEndMinutes - eventDurationMinutes;
+          newStartMinutes = snapToNearestQuarterHour(newStartMinutes);
           newStartMinutes = Math.max(TIMELINE_START_HOUR * 60, newStartMinutes);
         }
 
         draggingEvent.startTime = formatMinutesToTime(newStartMinutes);
-        draggingEvent.endTime = formatMinutesToTime(newEndMinutes);
+        if (newEndMinutes === TIMELINE_END_HOUR * 60) {
+          draggingEvent.endTime = "00:00";
+        } else {
+          draggingEvent.endTime = formatMinutesToTime(newEndMinutes);
+        }
 
         eventBlock.style.cursor = "grab";
         eventBlock.style.zIndex = "10";
@@ -864,30 +916,82 @@ document.addEventListener("DOMContentLoaded", () => {
         const newStartPx = parseFloat(eventBlock.style.left);
         const newWidthPx = parseFloat(eventBlock.style.width);
 
-        let newStartMinutes =
+        let tentativeStartMinutes =
           Math.round(newStartPx / pixelsPerMinute) + TIMELINE_START_HOUR * 60;
-        let newEndMinutes =
+        let tentativeEndMinutes =
           Math.round((newStartPx + newWidthPx) / pixelsPerMinute) +
           TIMELINE_START_HOUR * 60;
 
-        newStartMinutes = Math.max(TIMELINE_START_HOUR * 60, newStartMinutes);
-        newEndMinutes = Math.min(TIMELINE_END_HOUR * 60, newEndMinutes);
-
-        const minDurationMinutes = Math.round(
-          MIN_EVENT_WIDTH_PX / pixelsPerMinute,
+        let finalStartMinutes, finalEndMinutes;
+        const originalEventStartMinutes = parseTimeToMinutes(
+          resizingEvent.startTime,
         );
-        if (newEndMinutes - newStartMinutes < minDurationMinutes) {
-          if (resizeHandleType === "right") {
-            newEndMinutes = newStartMinutes + minDurationMinutes;
-          } else {
-            newStartMinutes = newEndMinutes - minDurationMinutes;
-          }
-          newStartMinutes = Math.max(TIMELINE_START_HOUR * 60, newStartMinutes);
-          newEndMinutes = Math.min(TIMELINE_END_HOUR * 60, newEndMinutes);
+        const originalEventEndMinutes = getInterpretedEndMinutes(
+          resizingEvent.startTime,
+          resizingEvent.endTime,
+        );
+        const MIN_RESIZE_DURATION_MINUTES = 15;
+
+        if (resizeHandleType === "left") {
+          finalStartMinutes = snapToNearestQuarterHour(tentativeStartMinutes);
+          finalEndMinutes = originalEventEndMinutes;
+        } else {
+          finalStartMinutes = originalEventStartMinutes;
+          finalEndMinutes = snapToNearestQuarterHour(tentativeEndMinutes);
         }
 
-        resizingEvent.startTime = formatMinutesToTime(newStartMinutes);
-        resizingEvent.endTime = formatMinutesToTime(newEndMinutes);
+        finalStartMinutes = Math.max(
+          TIMELINE_START_HOUR * 60,
+          finalStartMinutes,
+        );
+        finalEndMinutes = Math.min(TIMELINE_END_HOUR * 60, finalEndMinutes);
+
+        if (finalEndMinutes - finalStartMinutes < MIN_RESIZE_DURATION_MINUTES) {
+          if (resizeHandleType === "right") {
+            finalEndMinutes = finalStartMinutes + MIN_RESIZE_DURATION_MINUTES;
+            finalEndMinutes = snapToNearestQuarterHour(finalEndMinutes);
+          } else {
+            finalStartMinutes = finalEndMinutes - MIN_RESIZE_DURATION_MINUTES;
+            finalStartMinutes = snapToNearestQuarterHour(finalStartMinutes);
+          }
+          finalStartMinutes = Math.max(
+            TIMELINE_START_HOUR * 60,
+            finalStartMinutes,
+          );
+          finalEndMinutes = Math.min(TIMELINE_END_HOUR * 60, finalEndMinutes);
+        }
+
+        if (finalStartMinutes >= finalEndMinutes) {
+          if (resizeHandleType === "right") {
+            finalStartMinutes = originalEventStartMinutes;
+            finalEndMinutes = snapToNearestQuarterHour(
+              finalStartMinutes + MIN_RESIZE_DURATION_MINUTES,
+            );
+          } else {
+            finalEndMinutes = originalEventEndMinutes;
+            finalStartMinutes = snapToNearestQuarterHour(
+              finalEndMinutes - MIN_RESIZE_DURATION_MINUTES,
+            );
+          }
+          finalStartMinutes = Math.max(
+            TIMELINE_START_HOUR * 60,
+            finalStartMinutes,
+          );
+          finalEndMinutes = Math.min(TIMELINE_END_HOUR * 60, finalEndMinutes);
+          if (finalStartMinutes >= finalEndMinutes) {
+            if (resizeHandleType === "right")
+              finalEndMinutes = finalStartMinutes + MIN_RESIZE_DURATION_MINUTES;
+            else
+              finalStartMinutes = finalEndMinutes - MIN_RESIZE_DURATION_MINUTES;
+          }
+        }
+
+        resizingEvent.startTime = formatMinutesToTime(finalStartMinutes);
+        if (finalEndMinutes === TIMELINE_END_HOUR * 60) {
+          resizingEvent.endTime = "00:00";
+        } else {
+          resizingEvent.endTime = formatMinutesToTime(finalEndMinutes);
+        }
 
         saveEvents();
         renderAll();
@@ -948,6 +1052,7 @@ document.addEventListener("DOMContentLoaded", () => {
               updateDaySelectOptions();
               renderAll();
               closeMobileSidebar();
+              FitTimelineOnPage();
             },
           );
         } else {
@@ -970,7 +1075,6 @@ document.addEventListener("DOMContentLoaded", () => {
       importFileInput.value = null;
     };
     reader.readAsText(file);
-    FitTimelineOnPage();
   }
 
   exportDataBtn.addEventListener("click", handleExportData);
@@ -994,12 +1098,26 @@ document.addEventListener("DOMContentLoaded", () => {
         "Delete Day",
         () => {
           const dayToDelete = currentDay;
+
           events.forEach((event) => {
             if (event.day > dayToDelete) {
               event.day -= 1;
             }
           });
+
           events = events.filter((event) => event.day !== dayToDelete);
+
+          const eventsToKeep = [];
+          events.forEach((event) => {
+            if (event.day < dayToDelete) {
+              eventsToKeep.push(event);
+            } else if (event.day > dayToDelete) {
+              event.day -= 1;
+              eventsToKeep.push(event);
+            }
+          });
+          events = eventsToKeep;
+
           maxDays -= 1;
           if (maxDays === 0) {
             maxDays = 1;
