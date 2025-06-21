@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+function initApp() {
   const addEventBtn = document.getElementById("add-event-btn");
   const eventDialog = document.getElementById("event-dialog");
   const eventForm = document.getElementById("event-form");
@@ -39,11 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const clearAllDataBtn = document.getElementById("clear-all-data-btn");
   const timelineTooltip = document.getElementById("timeline-tooltip");
 
-  const customDialog = document.getElementById("custom-dialog");
-  const customDialogTitle = document.getElementById("custom-dialog-title");
-  const customDialogMessage = document.getElementById("custom-dialog-message");
-  const customDialogButtons = document.getElementById("custom-dialog-buttons");
-
   const mobileMenuBtn = document.getElementById("mobile-menu-btn");
   const mobileSidebar = document.getElementById("mobile-sidebar");
   const sidebarOverlay = document.getElementById("sidebar-overlay");
@@ -69,98 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let resizeHandleType = null;
   let initialEventRect = null;
   let mouseDownPos = null;
-
-  function snapToNearestQuarterHour(minutes) {
-    return Math.round(minutes / 15) * 15;
-  }
-
-  function getInterpretedEndMinutes(startTimeStr, endTimeStr) {
-    const startMinutes = parseTimeToMinutes(startTimeStr);
-    let endMinutes = parseTimeToMinutes(endTimeStr);
-
-    if (endTimeStr === "00:00" && startMinutes !== endMinutes) {
-      endMinutes = TIMELINE_END_HOUR * 60;
-    }
-    return endMinutes;
-  }
-
-  function showCustomAlert(message, title = "Alert") {
-    customDialogTitle.textContent = title;
-    customDialogMessage.textContent = message;
-    customDialogButtons.innerHTML = "";
-
-    const okButton = document.createElement("button");
-    okButton.textContent = "OK";
-    okButton.classList.add("alert-ok-btn");
-    okButton.addEventListener("click", () => customDialog.close());
-    customDialogButtons.appendChild(okButton);
-    customDialog.showModal();
-  }
-
-  function showCustomConfirm(
-    message,
-    title = "Confirm",
-    onConfirmCallback,
-    onCancelCallback,
-  ) {
-    customDialogTitle.textContent = title;
-    customDialogMessage.innerHTML = message;
-    customDialogButtons.innerHTML = "";
-
-    const confirmButton = document.createElement("button");
-    confirmButton.textContent = "Confirm";
-    confirmButton.classList.add("confirm-btn");
-    confirmButton.addEventListener("click", () => {
-      customDialog.close();
-      if (typeof onConfirmCallback === "function") {
-        onConfirmCallback();
-      }
-    });
-
-    const cancelButton = document.createElement("button");
-    cancelButton.textContent = "Cancel";
-    cancelButton.classList.add("cancel-btn");
-    cancelButton.addEventListener("click", () => {
-      customDialog.close();
-      if (typeof onCancelCallback === "function") {
-        onCancelCallback();
-      }
-    });
-
-    customDialogButtons.appendChild(cancelButton);
-    customDialogButtons.appendChild(confirmButton);
-    customDialog.showModal();
-  }
-
-  function parseTimeToMinutes(timeStr) {
-    if (!timeStr) return 0;
-    const [hours, minutes] = timeStr.split(":").map(Number);
-    return hours * 60 + minutes;
-  }
-
-  function formatMinutesToTime(totalMinutes) {
-    const hours = Math.floor(totalMinutes / 60) % 24;
-    const minutes = totalMinutes % 60;
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
-      2,
-      "0",
-    )}`;
-  }
-
-  function formatTimeForDisplay(timeStr24hr) {
-    if (!timeStr24hr) return "";
-
-    if (timeStr24hr === "00:00") {
-    }
-
-    const [hours, minutes] = timeStr24hr.split(":").map(Number);
-    const ampm = hours >= 12 && hours < 24 ? "PM" : "AM";
-    let displayHours = hours % 12;
-    if (displayHours === 0) {
-      displayHours = 12;
-    }
-    return `${displayHours}:${String(minutes).padStart(2, "0")} ${ampm}`;
-  }
 
   function saveEvents() {
     localStorage.setItem(
@@ -190,36 +93,6 @@ document.addEventListener("DOMContentLoaded", () => {
       option.textContent = `Day ${i}`;
       eventDaySelect.appendChild(option);
     }
-  }
-
-  function updateTooltipPosition(e) {
-    if (timelineTooltip.classList.contains("hidden")) return;
-
-    const offsetX = 15;
-    const offsetY = 15;
-    let newX = e.clientX + offsetX;
-    let newY = e.clientY + offsetY;
-
-    const tooltipWidth = timelineTooltip.offsetWidth;
-    const tooltipHeight = timelineTooltip.offsetHeight;
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    if (newX + tooltipWidth > viewportWidth) {
-      newX = e.clientX - tooltipWidth - offsetX;
-    }
-    if (newX < 0) {
-      newX = offsetX;
-    }
-    if (newY + tooltipHeight > viewportHeight) {
-      newY = e.clientY - tooltipHeight - offsetY;
-    }
-    if (newY < 0) {
-      newY = offsetY;
-    }
-
-    timelineTooltip.style.left = `${newX}px`;
-    timelineTooltip.style.top = `${newY}px`;
   }
 
   function renderDayTabs() {
@@ -301,7 +174,6 @@ document.addEventListener("DOMContentLoaded", () => {
           quarterTick.classList.add("time-tick");
           const quarterPosition = tickPosition + (timelineScale / 4) * j;
           quarterTick.style.left = `${quarterPosition}px`;
-
           timeRuler.appendChild(quarterTick);
         }
       }
@@ -321,7 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     dayEvents.forEach((eventData) => {
       const startMinutes = parseTimeToMinutes(eventData.startTime);
-
       const endMinutes = getInterpretedEndMinutes(
         eventData.startTime,
         eventData.endTime,
@@ -382,11 +253,11 @@ document.addEventListener("DOMContentLoaded", () => {
             currentEventData.startTime,
           )} - ${formatTimeForDisplay(currentEventData.endTime)}`;
           timelineTooltip.classList.remove("hidden");
-          updateTooltipPosition(e);
+          updateTooltipPosition(e, timelineTooltip);
         }
       });
       eventBlock.addEventListener("mousemove", (e) => {
-        updateTooltipPosition(e);
+        updateTooltipPosition(e, timelineTooltip);
       });
       eventBlock.addEventListener("mouseleave", () => {
         timelineTooltip.classList.add("hidden");
@@ -399,44 +270,6 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     });
     timelineEventsContainer.style.height = `${maxBottom}px`;
-  }
-
-  function darkenColor(color, percent) {
-    let r, g, b;
-    if (color.startsWith("#")) {
-      color = color.slice(1);
-      if (color.length === 3) {
-        r = parseInt(color[0] + color[0], 16);
-        g = parseInt(color[1] + color[1], 16);
-        b = parseInt(color[2] + color[2], 16);
-      } else if (color.length === 6) {
-        r = parseInt(color.substring(0, 2), 16);
-        g = parseInt(color.substring(2, 4), 16);
-        b = parseInt(color.substring(4, 6), 16);
-      } else {
-        return "#000000";
-      }
-    } else {
-      return "#000000";
-    }
-
-    r = Math.floor(r * (1 - percent / 100));
-    g = Math.floor(g * (1 - percent / 100));
-    b = Math.floor(b * (1 - percent / 100));
-    return `#${[r, g, b]
-      .map((x) => Math.max(0, Math.min(255, x)).toString(16).padStart(2, "0"))
-      .join("")}`;
-  }
-
-  function toggleEventDetails(listItem) {
-    const detailsDiv = listItem.querySelector(".event-details");
-    const chevronBtn = listItem.querySelector(".event-list-chevron-btn");
-    if (!detailsDiv || !chevronBtn) return;
-
-    const isExpanded = chevronBtn.dataset.expanded === "true";
-    detailsDiv.classList.toggle("hidden", isExpanded);
-    chevronBtn.innerHTML = isExpanded ? "▼" : "▲";
-    chevronBtn.dataset.expanded = String(!isExpanded);
   }
 
   function renderEventList() {
@@ -553,7 +386,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const dayEvents = events.filter((event) => event.day === currentDay);
     clearDayBtn.classList.remove("hidden");
 
-    if (currentDay === 1 && dayEvents.length === 0) {
+    if (currentDay === 1 && dayEvents.length === 0 && maxDays === 1) {
       clearDayBtn.classList.add("hidden");
     } else if (dayEvents.length === 0) {
       clearDayBtn.textContent = "Delete Day";
@@ -572,7 +405,7 @@ document.addEventListener("DOMContentLoaded", () => {
     eventDaySelect.value = currentDay;
     eventColorInput.value = "#3498db";
     deleteEventBtn.style.display = "none";
-    eventDialog.showModal();
+    if (eventDialog.showModal) eventDialog.showModal();
   }
 
   function openEditDialog(id) {
@@ -594,7 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
     eventAttachmentsInput.value = event.attachments || "";
 
     deleteEventBtn.style.display = "inline-block";
-    eventDialog.showModal();
+    if (eventDialog.showModal) eventDialog.showModal();
   }
 
   eventForm.addEventListener("submit", (e) => {
@@ -604,7 +437,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const endTimeValue = eventEndTimeInput.value;
 
     const startMinutes = parseTimeToMinutes(startTimeValue);
-
     const endMinutes = getInterpretedEndMinutes(startTimeValue, endTimeValue);
 
     if (startMinutes >= endMinutes) {
@@ -683,7 +515,6 @@ document.addEventListener("DOMContentLoaded", () => {
           minEventStartMinutes,
           parseTimeToMinutes(event.startTime),
         );
-
         maxEventEndMinutes = Math.max(
           maxEventEndMinutes,
           getInterpretedEndMinutes(event.startTime, event.endTime),
@@ -693,9 +524,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const FIT_PADDING_MINUTES = 30;
       const MIN_FIT_VIEW_DURATION_MINUTES = 60;
       const FULL_DAY_MINUTES = (TIMELINE_END_HOUR - TIMELINE_START_HOUR) * 60;
-
       const eventActualSpanMinutes = maxEventEndMinutes - minEventStartMinutes;
-
       let targetViewDurationMinutes =
         eventActualSpanMinutes + 2 * FIT_PADDING_MINUTES;
       targetViewDurationMinutes = Math.max(
@@ -709,7 +538,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const eventCenterMinutes =
         (minEventStartMinutes + maxEventEndMinutes) / 2;
-
       let viewStartMinutes = eventCenterMinutes - targetViewDurationMinutes / 2;
       let viewEndMinutes = eventCenterMinutes + targetViewDurationMinutes / 2;
 
@@ -740,7 +568,6 @@ document.addEventListener("DOMContentLoaded", () => {
       let newScale = (wrapperWidth * 60) / finalViewDurationMinutes;
       newScale = Math.max(getMinTimelineScale(), newScale);
       newScale = Math.min(300, newScale);
-
       timelineScale = newScale;
       renderTimeline();
 
@@ -793,13 +620,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let newLeftPx = mouseXInTimeline - dragOffsetX;
       newLeftPx = Math.max(0, newLeftPx);
-
       const eventDurationMinutes =
         getInterpretedEndMinutes(
           draggingEvent.startTime,
           draggingEvent.endTime,
         ) - parseTimeToMinutes(draggingEvent.startTime);
-
       const maxLeftPx =
         (TIMELINE_END_HOUR - TIMELINE_START_HOUR) * 60 * pixelsPerMinute -
         eventDurationMinutes * pixelsPerMinute;
@@ -816,7 +641,6 @@ document.addEventListener("DOMContentLoaded", () => {
         resizingEvent.startTime,
         resizingEvent.endTime,
       );
-
       const originalStartPx =
         (originalStartMinutes - TIMELINE_START_HOUR * 60) * pixelsPerMinute;
       const originalWidthPx =
@@ -834,7 +658,6 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         let newStartPx = mouseXInTimeline;
         newStartPx = Math.max(0, newStartPx);
-
         let newWidthPx = originalStartPx + originalWidthPx - newStartPx;
         newWidthPx = Math.max(MIN_EVENT_WIDTH_PX, newWidthPx);
 
@@ -842,7 +665,6 @@ document.addEventListener("DOMContentLoaded", () => {
           newStartPx = originalStartPx + originalWidthPx - newWidthPx;
         }
         newStartPx = Math.max(0, newStartPx);
-
         eventBlock.style.left = `${newStartPx}px`;
         eventBlock.style.width = `${newWidthPx}px`;
       }
@@ -862,13 +684,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (distMoved < CLICK_THRESHOLD_PX) {
           openEditDialog(draggingEvent.id);
-
           eventBlock.style.cursor = "grab";
           eventBlock.style.zIndex = "10";
           draggingEvent = null;
           mouseDownPos = null;
           document.body.style.cursor = "default";
-          renderAll();
+          renderAll(); 
           return;
         }
 
@@ -879,13 +700,10 @@ document.addEventListener("DOMContentLoaded", () => {
             draggingEvent.startTime,
             draggingEvent.endTime,
           ) - parseTimeToMinutes(draggingEvent.startTime);
-
         let newStartMinutes =
           Math.round(newLeftPx / pixelsPerMinute) + TIMELINE_START_HOUR * 60;
-
         newStartMinutes = snapToNearestQuarterHour(newStartMinutes);
         newStartMinutes = Math.max(TIMELINE_START_HOUR * 60, newStartMinutes);
-
         let newEndMinutes = newStartMinutes + eventDurationMinutes;
 
         if (newEndMinutes > TIMELINE_END_HOUR * 60) {
@@ -901,7 +719,6 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           draggingEvent.endTime = formatMinutesToTime(newEndMinutes);
         }
-
         eventBlock.style.cursor = "grab";
         eventBlock.style.zIndex = "10";
         saveEvents();
@@ -915,13 +732,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const pixelsPerMinute = timelineScale / 60;
         const newStartPx = parseFloat(eventBlock.style.left);
         const newWidthPx = parseFloat(eventBlock.style.width);
-
         let tentativeStartMinutes =
           Math.round(newStartPx / pixelsPerMinute) + TIMELINE_START_HOUR * 60;
         let tentativeEndMinutes =
           Math.round((newStartPx + newWidthPx) / pixelsPerMinute) +
           TIMELINE_START_HOUR * 60;
-
         let finalStartMinutes, finalEndMinutes;
         const originalEventStartMinutes = parseTimeToMinutes(
           resizingEvent.startTime,
@@ -992,7 +807,6 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           resizingEvent.endTime = formatMinutesToTime(finalEndMinutes);
         }
-
         saveEvents();
         renderAll();
       }
@@ -1098,15 +912,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "Delete Day",
         () => {
           const dayToDelete = currentDay;
-
-          events.forEach((event) => {
-            if (event.day > dayToDelete) {
-              event.day -= 1;
-            }
-          });
-
-          events = events.filter((event) => event.day !== dayToDelete);
-
+          
           const eventsToKeep = [];
           events.forEach((event) => {
             if (event.day < dayToDelete) {
@@ -1184,4 +990,4 @@ document.addEventListener("DOMContentLoaded", () => {
   loadEvents();
   renderAll();
   FitTimelineOnPage();
-});
+}
