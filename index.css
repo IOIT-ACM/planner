@@ -400,6 +400,21 @@ main {
   border: 1px solid #eee;
 }
 
+.event-details table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.event-details table td {
+  padding: 4px 0;
+  vertical-align: top;
+  word-break: break-word;
+}
+.event-details table td:first-child {
+  width: 100px;
+  font-weight: bold;
+  padding-right: 10px;
+}
+
 .event-details p {
   margin: 5px 0;
 }
@@ -495,4 +510,17 @@ dialog::backdrop {
 
 .hidden {
   display: none !important;
+}
+
+#timeline-tooltip {
+  position: fixed;
+  background-color: #333;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  z-index: 2000;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
