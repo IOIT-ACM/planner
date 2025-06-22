@@ -30,7 +30,7 @@
     },
     {
       "id": "event-5",
-      "title": "Web Workshop Series",
+      "title": "AI session series",
       "day": 1,
       "startTime": "14:00",
       "endTime": "17:00",
@@ -55,16 +55,6 @@
       "endTime": "09:00",
       "color": "#bdc3c7",
       "location": "Admin Office"
-    },
-    {
-      "id": "event-8",
-      "title": "LAN Event",
-      "day": 2,
-      "startTime": "09:00",
-      "endTime": "18:00",
-      "color": "#d35400",
-      "location": "MPH",
-      "notes": ""
     },
     {
       "id": "event-9",
@@ -137,7 +127,7 @@
       "day": 3,
       "startTime": "11:45",
       "endTime": "17:00",
-      "color": "#77d6ee",
+      "color": "#e2ac36",
       "location": "AISSMS IOIT",
       "notes": ""
     },
@@ -162,7 +152,7 @@
     },
     {
       "id": "1750544226736",
-      "title": "AI Session Series Day 2",
+      "title": "AI session series",
       "day": 2,
       "startTime": "11:15",
       "endTime": "13:15",
@@ -172,9 +162,9 @@
     },
     {
       "id": "1750544238452",
-      "title": "Web Workshop Series Day 2",
+      "title": "AI session series",
       "day": 2,
-      "startTime": "14:15",
+      "startTime": "14:00",
       "endTime": "17:00",
       "color": "#2980b9",
       "location": "Multipurpose Hall (MPH)",
@@ -194,7 +184,7 @@
       "id": "1750544289918",
       "title": "Web Workshop Series Day 3",
       "day": 3,
-      "startTime": "14:15",
+      "startTime": "14:00",
       "endTime": "17:00",
       "color": "#2980b9",
       "location": "Multipurpose Hall (MPH)",
@@ -228,6 +218,36 @@
       "endTime": "17:00",
       "color": "#a6af28",
       "location": "Room 407",
+      "notes": ""
+    },
+    {
+      "id": "1750583671610",
+      "title": "Break",
+      "day": 1,
+      "startTime": "13:15",
+      "endTime": "14:00",
+      "color": "#bdbdbd",
+      "location": "",
+      "notes": ""
+    },
+    {
+      "id": "1750583711325",
+      "title": "Break",
+      "day": 2,
+      "startTime": "13:15",
+      "endTime": "14:00",
+      "color": "#bdbdbd",
+      "location": "",
+      "notes": ""
+    },
+    {
+      "id": "1750583740390",
+      "title": "Break (Copy)",
+      "day": 3,
+      "startTime": "13:15",
+      "endTime": "14:00",
+      "color": "#bdbdbd",
+      "location": "",
       "notes": ""
     }
   ],
