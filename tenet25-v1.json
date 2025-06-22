@@ -14,7 +14,7 @@
       "id": "event-3",
       "title": "Drone Workshop",
       "day": 1,
-      "startTime": "11:30",
+      "startTime": "11:15",
       "endTime": "17:00",
       "color": "#27ae60",
       "location": "Room 407"
@@ -23,7 +23,7 @@
       "id": "event-4",
       "title": "Hackathon Day 1",
       "day": 1,
-      "startTime": "12:00",
+      "startTime": "16:00",
       "endTime": "23:59",
       "color": "#f39c12",
       "location": "Main Auditorium"
@@ -32,9 +32,9 @@
       "id": "event-5",
       "title": "Web Workshop Series",
       "day": 1,
-      "startTime": "14:15",
+      "startTime": "14:00",
       "endTime": "17:00",
-      "color": "#27ae60",
+      "color": "#2980b9",
       "location": "Multipurpose Hall (MPH)",
       "notes": ""
     },
@@ -43,7 +43,7 @@
       "title": "Hackathon Day 2",
       "day": 2,
       "startTime": "00:00",
-      "endTime": "12:00",
+      "endTime": "16:00",
       "color": "#f39c12",
       "location": "Main Auditorium"
     },
@@ -63,16 +63,18 @@
       "startTime": "09:00",
       "endTime": "18:00",
       "color": "#d35400",
-      "location": "MPH"
+      "location": "MPH",
+      "notes": ""
     },
     {
       "id": "event-9",
-      "title": "IOIT MUN Opening Ceremony",
+      "title": "MUN Opening Ceremony",
       "day": 2,
       "startTime": "09:00",
       "endTime": "11:00",
       "color": "#c763f2",
-      "location": "MPH"
+      "location": "MPH",
+      "notes": ""
     },
     {
       "id": "event-10",
@@ -123,8 +125,8 @@
       "id": "event-15",
       "title": "MUN Committee Session 2 (Day 3)",
       "day": 3,
-      "startTime": "11:00",
-      "endTime": "17:00",
+      "startTime": "10:00",
+      "endTime": "13:00",
       "color": "#f1c40f",
       "location": "AISSMS IOIT",
       "notes": ""
@@ -132,7 +134,7 @@
     {
       "id": "event-16",
       "title": "Investing Arena",
-      "day": 2,
+      "day": 3,
       "startTime": "11:45",
       "endTime": "17:00",
       "color": "#77d6ee",
@@ -153,7 +155,7 @@
       "title": "Inauguration ",
       "day": 1,
       "startTime": "08:30",
-      "endTime": "10:30",
+      "endTime": "11:00",
       "color": "#ea9ff9",
       "location": "",
       "notes": ""
@@ -174,7 +176,7 @@
       "day": 2,
       "startTime": "14:15",
       "endTime": "17:00",
-      "color": "#27ae60",
+      "color": "#2980b9",
       "location": "Multipurpose Hall (MPH)",
       "notes": ""
     },
@@ -194,8 +196,38 @@
       "day": 3,
       "startTime": "14:15",
       "endTime": "17:00",
-      "color": "#27ae60",
+      "color": "#2980b9",
       "location": "Multipurpose Hall (MPH)",
+      "notes": ""
+    },
+    {
+      "id": "1750575812631",
+      "title": "MUN Committee Session 1 (Day 2)",
+      "day": 2,
+      "startTime": "15:00",
+      "endTime": "17:00",
+      "color": "#f1c40f",
+      "location": "AISSMS IOIT",
+      "notes": ""
+    },
+    {
+      "id": "1750575846347",
+      "title": "MUN Committee Session 1 (Day 2)",
+      "day": 3,
+      "startTime": "14:00",
+      "endTime": "16:00",
+      "color": "#f1c40f",
+      "location": "AISSMS IOIT",
+      "notes": ""
+    },
+    {
+      "id": "1750576023414",
+      "title": "CTF",
+      "day": 1,
+      "startTime": "11:15",
+      "endTime": "17:00",
+      "color": "#a6af28",
+      "location": "Room 407",
       "notes": ""
     }
   ],
