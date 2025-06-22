@@ -55,6 +55,8 @@ function initApp() {
   const TIMELINE_END_HOUR = 24;
   const MIN_EVENT_WIDTH_PX = 20;
   const CLICK_THRESHOLD_PX = 5;
+  const EVENT_BLOCK_HEIGHT = 40;
+  const EVENT_BLOCK_MARGIN = 5;
 
   let draggingEvent = null;
   let resizingEvent = null;
@@ -62,6 +64,10 @@ function initApp() {
   let resizeHandleType = null;
   let initialEventRect = null;
   let mouseDownPos = null;
+
+  let isCreatingEvent = false;
+  let newEventStartPos = { x: 0, y: 0 };
+  let ghostEventBlock = null;
 
   function saveEvents() {
     localStorage.setItem(
@@ -191,8 +197,8 @@ function initApp() {
     }
 
     const dayEvents = events.filter((event) => event.day === currentDay);
-    const eventHeight = 40;
-    const eventMargin = 5;
+    const eventHeight = EVENT_BLOCK_HEIGHT;
+    const eventMargin = EVENT_BLOCK_MARGIN;
     let maxBottom = 100;
 
     dayEvents.sort(
@@ -223,6 +229,7 @@ function initApp() {
       eventBlock.style.borderColor = darkenColor(eventData.color, 20);
       eventBlock.style.left = `${eventStartOffset}px`;
       eventBlock.style.width = `${eventWidth}px`;
+      eventBlock.style.height = `${eventHeight}px`;
 
       let placed = false;
       for (let i = 0; i < lanes.length; i++) {
@@ -280,7 +287,7 @@ function initApp() {
         parseFloat(eventBlock.style.top) + eventHeight + eventMargin,
       );
     });
-    timelineEventsContainer.style.height = `${maxBottom}px`;
+    timelineEventsContainer.style.height = `${Math.max(maxBottom, EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN)}px`;
   }
 
   function renderEventList() {
@@ -653,30 +660,89 @@ function initApp() {
   fitTimelineBtn.addEventListener("click", FitTimelineOnPage);
 
   timelineEventsContainer.addEventListener("mousedown", (e) => {
-    const eventBlock = e.target.closest(".event-block");
-    if (!eventBlock) return;
+    const clickedEventBlock = e.target.closest(".event-block");
 
-    const eventId = eventBlock.dataset.eventId;
-    const event = events.find((ev) => ev.id === eventId);
-    if (!event) return;
+    if (clickedEventBlock) {
+      const eventId = clickedEventBlock.dataset.eventId;
+      const event = events.find((ev) => ev.id === eventId);
+      if (!event) return;
 
-    initialEventRect = eventBlock.getBoundingClientRect();
-    mouseDownPos = { x: e.clientX, y: e.clientY };
+      initialEventRect = clickedEventBlock.getBoundingClientRect();
+      mouseDownPos = { x: e.clientX, y: e.clientY };
 
-    if (e.target.classList.contains("resize-handle")) {
-      resizingEvent = event;
-      resizeHandleType = e.target.classList.contains("left") ? "left" : "right";
-      document.body.style.cursor = "ew-resize";
-    } else {
-      draggingEvent = event;
-      dragOffsetX = e.clientX - initialEventRect.left;
-      eventBlock.style.cursor = "grabbing";
-      eventBlock.style.zIndex = "1000";
+      if (e.target.classList.contains("resize-handle")) {
+        resizingEvent = event;
+        resizeHandleType = e.target.classList.contains("left")
+          ? "left"
+          : "right";
+        document.body.style.cursor = "ew-resize";
+      } else {
+        draggingEvent = event;
+        dragOffsetX = e.clientX - initialEventRect.left;
+        clickedEventBlock.style.cursor = "grabbing";
+        clickedEventBlock.style.zIndex = "1000";
+      }
+      e.preventDefault();
+    } else if (
+      window.matchMedia("(pointer: fine)").matches &&
+      e.target === timelineEventsContainer
+    ) {
+      if (draggingEvent || resizingEvent || isCreatingEvent) return;
+
+      isCreatingEvent = true;
+      const rect = timelineEventsContainer.getBoundingClientRect();
+      const scrollLeft = timelineContainerWrapper.scrollLeft;
+
+      const laneHeightWithMargin = EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN;
+      const clickYInTimelineEvents = e.clientY - rect.top;
+      const targetLaneIndex = Math.floor(
+        clickYInTimelineEvents / laneHeightWithMargin,
+      );
+      const ghostTopPx = targetLaneIndex * laneHeightWithMargin;
+
+      newEventStartPos = {
+        x: e.clientX - rect.left + scrollLeft,
+        y: ghostTopPx,
+      };
+
+      ghostEventBlock = document.createElement("div");
+      ghostEventBlock.classList.add("ghost-event-block");
+      ghostEventBlock.style.left = `${newEventStartPos.x}px`;
+      ghostEventBlock.style.top = `${newEventStartPos.y}px`;
+      ghostEventBlock.style.height = `${EVENT_BLOCK_HEIGHT}px`;
+      ghostEventBlock.style.width = "0px";
+      timelineEventsContainer.appendChild(ghostEventBlock);
+      document.body.style.cursor = "crosshair";
+      e.preventDefault();
     }
-    e.preventDefault();
   });
 
   document.addEventListener("mousemove", (e) => {
+    if (isCreatingEvent && ghostEventBlock) {
+      const rect = timelineEventsContainer.getBoundingClientRect();
+      const scrollLeft = timelineContainerWrapper.scrollLeft;
+      let currentX = e.clientX - rect.left + scrollLeft;
+
+      const pixelsPerMinute = timelineScale / 60;
+      const totalTimelineWidthPx =
+        (TIMELINE_END_HOUR - TIMELINE_START_HOUR) * 60 * pixelsPerMinute;
+      currentX = Math.max(0, Math.min(currentX, totalTimelineWidthPx));
+
+      let newLeft, newWidth;
+      if (currentX < newEventStartPos.x) {
+        newLeft = currentX;
+        newWidth = newEventStartPos.x - currentX;
+      } else {
+        newLeft = newEventStartPos.x;
+        newWidth = currentX - newEventStartPos.x;
+      }
+
+      ghostEventBlock.style.left = `${newLeft}px`;
+      ghostEventBlock.style.width = `${newWidth}px`;
+      e.preventDefault();
+      return;
+    }
+
     if (!draggingEvent && !resizingEvent) return;
     e.preventDefault();
 
@@ -734,7 +800,10 @@ function initApp() {
         let newWidthPx = originalStartPx + originalWidthPx - newStartPx;
         newWidthPx = Math.max(MIN_EVENT_WIDTH_PX, newWidthPx);
 
-        if (newStartPx + newWidthPx > originalStartPx + originalWidthPx) {
+        if (
+          newStartPx + newWidthPx > originalStartPx + originalWidthPx &&
+          newWidthPx === MIN_EVENT_WIDTH_PX
+        ) {
           newStartPx = originalStartPx + originalWidthPx - newWidthPx;
         }
         newStartPx = Math.max(0, newStartPx);
@@ -745,6 +814,75 @@ function initApp() {
   });
 
   document.addEventListener("mouseup", (e) => {
+    if (isCreatingEvent) {
+      isCreatingEvent = false;
+      document.body.style.cursor = "default";
+
+      if (ghostEventBlock) {
+        const finalRectLeft = parseFloat(ghostEventBlock.style.left);
+        const finalWidth = parseFloat(ghostEventBlock.style.width);
+
+        if (ghostEventBlock.parentElement) {
+          timelineEventsContainer.removeChild(ghostEventBlock);
+        }
+        ghostEventBlock = null;
+
+        const minPixelWidthToCreateEvent = 10;
+        if (finalWidth < minPixelWidthToCreateEvent) {
+          return;
+        }
+
+        const pixelsPerMinute = timelineScale / 60;
+        let startMinutes = Math.round(
+          finalRectLeft / pixelsPerMinute + TIMELINE_START_HOUR * 60,
+        );
+        let endMinutes = Math.round(
+          (finalRectLeft + finalWidth) / pixelsPerMinute +
+            TIMELINE_START_HOUR * 60,
+        );
+
+        startMinutes = snapToNearestQuarterHour(startMinutes);
+        endMinutes = snapToNearestQuarterHour(endMinutes);
+
+        const MIN_CREATION_DURATION_MINUTES = 15;
+        if (endMinutes <= startMinutes) {
+          endMinutes = startMinutes + MIN_CREATION_DURATION_MINUTES;
+        } else if (endMinutes - startMinutes < MIN_CREATION_DURATION_MINUTES) {
+          endMinutes = startMinutes + MIN_CREATION_DURATION_MINUTES;
+        }
+
+        startMinutes = Math.max(TIMELINE_START_HOUR * 60, startMinutes);
+        endMinutes = Math.min(TIMELINE_END_HOUR * 60, endMinutes);
+
+        if (endMinutes <= startMinutes) {
+          return;
+        }
+
+        const startTimeStr = formatMinutesToTime(startMinutes);
+        const endTimeStr =
+          endMinutes === TIMELINE_END_HOUR * 60
+            ? "00:00"
+            : formatMinutesToTime(endMinutes);
+
+        openAddDialog();
+        eventStartTimeInput.value = startTimeStr;
+        eventEndTimeInput.value = endTimeStr;
+
+        const radioToSelect = eventDayRadioGroup.querySelector(
+          `input[value="${currentDay}"]`,
+        );
+        if (radioToSelect) {
+          radioToSelect.checked = true;
+        } else {
+          const firstRadio = eventDayRadioGroup.querySelector(
+            'input[type="radio"]',
+          );
+          if (firstRadio) firstRadio.checked = true;
+        }
+      }
+      return;
+    }
+
     if (draggingEvent) {
       const eventBlock = timelineEventsContainer.querySelector(
         `.event-block[data-event-id="${draggingEvent.id}"]`,
@@ -792,8 +930,6 @@ function initApp() {
         } else {
           draggingEvent.endTime = formatMinutesToTime(newEndMinutes);
         }
-        eventBlock.style.cursor = "grab";
-        eventBlock.style.zIndex = "10";
         saveEvents();
         renderAll();
       }
@@ -885,17 +1021,19 @@ function initApp() {
       }
     }
 
+    if (draggingEvent || resizingEvent) {
+      document.body.style.cursor = "default";
+      const allEventBlocks =
+        timelineEventsContainer.querySelectorAll(".event-block");
+      allEventBlocks.forEach((block) => {
+        block.style.cursor = "grab";
+        block.style.zIndex = "10";
+      });
+    }
     draggingEvent = null;
     resizingEvent = null;
     resizeHandleType = null;
     mouseDownPos = null;
-    document.body.style.cursor = "default";
-    const allEventBlocks =
-      timelineEventsContainer.querySelectorAll(".event-block");
-    allEventBlocks.forEach((block) => {
-      block.style.cursor = "grab";
-      block.style.zIndex = "10";
-    });
   });
 
   function handleExportData() {
