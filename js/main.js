@@ -118,6 +118,7 @@ function initApp() {
       tab.addEventListener("click", () => {
         currentDay = i;
         renderAll();
+        FitTimelineOnPage();
       });
       dayTabsContainer.appendChild(tab);
     }
@@ -1007,6 +1008,7 @@ function initApp() {
           saveEvents();
           updateDayRadioOptions();
           renderAll();
+          FitTimelineOnPage();
         },
       );
     } else {
@@ -1017,6 +1019,7 @@ function initApp() {
           events = events.filter((event) => event.day !== currentDay);
           saveEvents();
           renderAll();
+          FitTimelineOnPage();
         },
       );
     }
@@ -1033,6 +1036,7 @@ function initApp() {
         saveEvents();
         updateDayRadioOptions();
         renderAll();
+        FitTimelineOnPage();
         closeMobileSidebar();
       },
     );

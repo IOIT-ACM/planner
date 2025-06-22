@@ -1060,4 +1060,8 @@ dialog::backdrop {
     padding: 7px 12px;
     font-size: 0.9em;
   }
+
+  #timeline-tooltip {
+    display: none !important;
+  }
 }
