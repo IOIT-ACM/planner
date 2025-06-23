@@ -555,7 +555,7 @@ function initApp() {
 
     const newEvent = {
       id: Date.now().toString(),
-      title: eventTitleInput.value + " (Copy)",
+      title: eventTitleInput.value,
       day: parseInt(selectedDayRadio.value),
       startTime: startTimeValue,
       endTime: endTimeValue,
@@ -697,7 +697,6 @@ function initApp() {
 
       isCreatingEvent = true;
       const rect = timelineEventsContainer.getBoundingClientRect();
-      const scrollLeft = timelineContainerWrapper.scrollLeft;
 
       const laneHeightWithMargin = EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN;
       const clickYInTimelineEvents = e.clientY - rect.top;
@@ -707,7 +706,7 @@ function initApp() {
       const ghostTopPx = targetLaneIndex * laneHeightWithMargin;
 
       newEventStartPos = {
-        x: e.clientX - rect.left + scrollLeft,
+        x: e.clientX - rect.left,
         y: ghostTopPx,
       };
 
@@ -726,8 +725,7 @@ function initApp() {
   document.addEventListener("mousemove", (e) => {
     if (isCreatingEvent && ghostEventBlock) {
       const rect = timelineEventsContainer.getBoundingClientRect();
-      const scrollLeft = timelineContainerWrapper.scrollLeft;
-      let currentX = e.clientX - rect.left + scrollLeft;
+      let currentX = e.clientX - rect.left;
 
       const pixelsPerMinute = timelineScale / 60;
       const totalTimelineWidthPx =
