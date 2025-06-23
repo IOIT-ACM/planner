@@ -1,31 +1,30 @@
 :root {
-  --color-olive-dark: #283618;
-  --color-olive-medium: #606c38;
-  --color-cream: #fefae0;
-  --color-sand: #dda15e;
-  --color-brown: #bc6c25;
+  --sys-color-1: #283618;
+  --sys-color-2: #606c38;
+  --sys-color-3: #fefae0;
+  --sys-color-4: #dda15e;
+  --sys-color-5: #bc6c25;
 
-  --color-olive-dark-rgba: 40, 54, 24;
-  --color-sand-rgba: 221, 161, 94;
+  --sys-color-1-rgba: 40, 54, 24;
+  --sys-color-4-rgba: 221, 161, 94;
 
-  --color-olive-medium-light: #939974;
-  --color-olive-medium-lightest: #d5d8c9;
-  --color-brown-dark: #96561d;
+  --sys-color-2-light: #939974;
+  --sys-color-2-lightest: #d5d8c9;
+  --sys-color-5-dark: #96561d;
 
-  --shadow-sm: 0 1px 3px rgba(var(--color-olive-dark-rgba), 0.08);
-  --shadow-md: 0 2px 4px rgba(var(--color-olive-dark-rgba), 0.12);
-  --shadow-lg: 0 4px 15px rgba(var(--color-olive-dark-rgba), 0.15);
-  --shadow-tooltip: 0 2px 5px rgba(var(--color-olive-dark-rgba), 0.2);
-  --backdrop-overlay: rgba(var(--color-olive-dark-rgba), 0.5);
-  --focus-ring-sand: 0 0 0 2px rgba(var(--color-sand-rgba), 0.4);
+  --shadow-sm: 0 1px 3px rgba(var(--sys-color-1-rgba), 0.08);
+  --shadow-md: 0 2px 4px rgba(var(--sys-color-1-rgba), 0.12);
+  --shadow-lg: 0 4px 15px rgba(var(--sys-color-1-rgba), 0.15);
+  --shadow-tooltip: 0 2px 5px rgba(var(--sys-color-1-rgba), 0.2);
+  --backdrop-overlay: rgba(var(--sys-color-1-rgba), 0.5);
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
   margin: 0;
-  background-color: var(--color-cream);
-  color: var(--color-olive-dark);
+  background-color: var(--sys-color-3);
+  color: var(--sys-color-1);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -35,12 +34,12 @@ body {
 }
 
 header {
-  background-color: var(--color-cream);
+  background-color: var(--sys-color-3);
   padding: 10px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--color-olive-medium);
+  border-bottom: 1px solid var(--sys-color-2);
   box-shadow: var(--shadow-sm);
   transition:
     background-color 0.3s ease,
@@ -68,7 +67,7 @@ header {
 header h1 {
   font-size: 1.4em;
   margin: 0;
-  color: var(--color-olive-dark);
+  color: var(--sys-color-1);
 }
 
 .header-actions {
@@ -78,8 +77,8 @@ header h1 {
 }
 
 .icon-btn {
-  background-color: var(--color-sand);
-  border: 1px solid var(--color-brown);
+  background-color: var(--sys-color-4);
+  border: 1px solid var(--sys-color-5);
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -89,7 +88,7 @@ header h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-olive-dark);
+  color: var(--sys-color-1);
   transition:
     background-color 0.2s ease,
     color 0.2s ease,
@@ -98,8 +97,8 @@ header h1 {
 }
 
 .icon-btn:hover {
-  background-color: var(--color-brown);
-  color: var(--color-cream);
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
 }
 
 #mobile-menu-btn {
@@ -119,7 +118,7 @@ main {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
-  background-color: var(--color-cream);
+  background-color: var(--sys-color-3);
   border-radius: 6px;
   flex-wrap: wrap;
   gap: 10px;
@@ -140,9 +139,9 @@ main {
 .day-tab,
 #add-day-btn {
   padding: 8px 12px;
-  border: 1px solid var(--color-brown);
-  background-color: var(--color-olive-medium);
-  color: var(--color-cream);
+  border: 1px solid var(--sys-color-5);
+  background-color: var(--sys-color-2);
+  color: var(--sys-color-3);
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
@@ -159,14 +158,14 @@ main {
 
 .day-tab:hover,
 #add-day-btn:hover {
-  background-color: var(--color-brown);
-  color: var(--color-cream);
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
 }
 
 .day-tab.active {
-  background-color: var(--color-sand);
-  color: var(--color-olive-dark);
-  border-color: var(--color-sand);
+  background-color: var(--sys-color-4);
+  color: var(--sys-color-1);
+  border-color: var(--sys-color-4);
 }
 
 .zoom-controls {
@@ -177,9 +176,9 @@ main {
 
 .zoom-controls button {
   padding: 6px 10px;
-  border: 1px solid var(--color-brown);
-  background-color: var(--color-olive-medium);
-  color: var(--color-cream);
+  border: 1px solid var(--sys-color-5);
+  background-color: var(--sys-color-2);
+  color: var(--sys-color-3);
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
@@ -190,12 +189,12 @@ main {
     transform 0.1s ease;
 }
 .zoom-controls button:hover {
-  background-color: var(--color-brown);
-  color: var(--color-cream);
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
 }
 .zoom-controls span {
   font-size: 0.9em;
-  color: var(--color-olive-dark);
+  color: var(--sys-color-1);
 }
 
 .data-management-controls {
@@ -206,9 +205,9 @@ main {
 
 .data-management-controls button {
   padding: 6px 10px;
-  border: 1px solid var(--color-brown);
-  background-color: var(--color-olive-medium);
-  color: var(--color-cream);
+  border: 1px solid var(--sys-color-5);
+  background-color: var(--sys-color-2);
+  color: var(--sys-color-3);
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
@@ -219,26 +218,26 @@ main {
     transform 0.1s ease;
 }
 .data-management-controls button:hover {
-  background-color: var(--color-brown);
-  color: var(--color-cream);
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
 }
 
 #clear-all-data-btn {
-  color: var(--color-brown);
-  border-color: var(--color-brown);
+  color: var(--sys-color-5);
+  border-color: var(--sys-color-5);
   background-color: transparent;
 }
 #clear-all-data-btn:hover {
-  background-color: var(--color-brown);
-  color: var(--color-cream);
-  border-color: var(--color-brown);
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
+  border-color: var(--sys-color-5);
 }
 
 #timeline-container-wrapper {
   width: 100%;
   overflow-x: auto;
-  background-color: var(--color-olive-medium-lightest);
-  border: 1px solid var(--color-olive-medium);
+  background-color: var(--sys-color-2-lightest);
+  border: 1px solid var(--sys-color-2);
   border-radius: 6px;
   margin-bottom: 20px;
   padding-bottom: 10px;
@@ -261,8 +260,8 @@ main {
   height: 30px;
   display: flex;
   font-size: 0.75em;
-  color: var(--color-olive-dark);
-  border-bottom: 1px solid var(--color-olive-medium);
+  color: var(--sys-color-1);
+  border-bottom: 1px solid var(--sys-color-2);
   padding-bottom: 10px;
   transition:
     border-color 0.3s ease,
@@ -275,7 +274,7 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: var(--color-olive-dark);
+  color: var(--sys-color-1);
 }
 
 .time-tick span {
@@ -290,14 +289,14 @@ main {
   bottom: 0;
   width: 1px;
   height: 10px;
-  background-color: var(--color-sand);
+  background-color: var(--sys-color-4);
   transition:
     background-color 0.3s ease,
     height 0.3s ease;
 }
 .time-tick.major::before {
   height: 15px;
-  background-color: var(--color-brown);
+  background-color: var(--sys-color-5);
 }
 
 #timeline-events {
@@ -308,9 +307,9 @@ main {
 
 .event-block {
   position: absolute;
-  background-color: var(--color-sand);
-  color: var(--color-olive-dark);
-  border: 1px solid var(--color-brown);
+  background-color: var(--sys-color-4);
+  color: var(--sys-color-1);
+  border: 1px solid var(--sys-color-5);
   border-radius: 4px;
   padding: 0 5px;
   font-size: 0.8em;
@@ -357,7 +356,7 @@ main {
   transition: background-color 0.1s ease;
 }
 .resize-handle:hover {
-  background-color: rgba(var(--color-sand-rgba), 0.3);
+  background-color: rgba(var(--sys-color-4-rgba), 0.3);
 }
 
 .resize-handle.left {
@@ -372,8 +371,8 @@ main {
 
 .ghost-event-block {
   position: absolute;
-  background-color: rgba(var(--color-sand-rgba), 0.5);
-  border: 1px dashed var(--color-brown);
+  background-color: rgba(var(--sys-color-4-rgba), 0.5);
+  border: 1px dashed var(--sys-color-5);
   border-radius: 4px;
   box-sizing: border-box;
   z-index: 999;
@@ -381,7 +380,7 @@ main {
 }
 
 #event-list-panel {
-  background-color: var(--color-cream);
+  background-color: var(--sys-color-3);
   padding: 15px 0;
   transition:
     background-color 0.3s ease,
@@ -392,7 +391,7 @@ main {
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid var(--color-olive-medium);
+  border-bottom: 1px solid var(--sys-color-2);
   padding-bottom: 8px;
   margin-bottom: 10px;
   transition: border-color 0.3s ease;
@@ -401,18 +400,18 @@ main {
 #event-list-panel h2 {
   margin-top: 0;
   font-size: 1.2em;
-  color: var(--color-olive-dark);
+  color: var(--sys-color-1);
   margin-bottom: 0;
 }
 
 #clear-day-btn {
   padding: 6px 10px;
-  border: 1px solid var(--color-brown);
+  border: 1px solid var(--sys-color-5);
   background-color: transparent;
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
-  color: var(--color-brown);
+  color: var(--sys-color-5);
   transition:
     background-color 0.2s ease,
     color 0.2s ease,
@@ -420,9 +419,9 @@ main {
     transform 0.1s ease;
 }
 #clear-day-btn:hover {
-  background-color: var(--color-brown);
-  border-color: var(--color-brown);
-  color: var(--color-cream);
+  background-color: var(--sys-color-5);
+  border-color: var(--sys-color-5);
+  color: var(--sys-color-3);
 }
 
 #event-list {
@@ -433,7 +432,7 @@ main {
 
 .event-list-item {
   padding: 15px;
-  border-bottom: 1px solid var(--color-olive-medium-lightest);
+  border-bottom: 1px solid var(--sys-color-2-lightest);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -445,13 +444,13 @@ main {
   border-bottom: none;
 }
 .event-list-item:hover {
-  background-color: var(--color-olive-medium-lightest);
+  background-color: var(--sys-color-2-lightest);
 }
 
 .event-color-dot {
   width: 20px;
   height: 20px;
-  border: 1px solid var(--color-brown);
+  border: 1px solid var(--sys-color-5);
   border-radius: 4px;
   padding: 0;
   margin-right: 10px;
@@ -482,7 +481,7 @@ main {
 .event-time {
   margin-right: 15px;
   font-size: 0.9em;
-  color: var(--color-olive-dark);
+  color: var(--sys-color-1);
   white-space: nowrap;
 }
 
@@ -501,8 +500,8 @@ main {
 }
 .event-title:hover {
   text-decoration: underline;
-  text-decoration-color: var(--color-sand);
-  color: var(--color-sand);
+  text-decoration-color: var(--sys-color-4);
+  color: var(--sys-color-4);
 }
 
 .event-actions button,
@@ -512,25 +511,36 @@ main {
   cursor: pointer;
   font-size: 1em;
   padding: 2px 5px;
-  color: var(--color-olive-dark);
+  color: var(--sys-color-1);
   transition:
     color 0.2s ease,
     transform 0.1s ease;
+  display: inline-flex; /* For aligning image inside */
+  align-items: center;
+  justify-content: center;
 }
 .event-actions button:hover,
 .event-list-chevron-btn:hover {
-  color: var(--color-sand);
+  color: var(
+    --sys-color-4
+  ); /* This will affect text color if any, not img src */
+}
+
+.event-actions button img {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
 }
 
 .event-details {
   width: 100%;
-  background-color: var(--color-olive-medium-lightest);
+  background-color: var(--sys-color-2-lightest);
   padding: 10px;
   margin-top: 8px;
   border-radius: 4px;
   font-size: 0.85em;
-  color: var(--color-olive-dark);
-  border: 1px solid var(--color-olive-medium);
+  color: var(--sys-color-1);
+  border: 1px solid var(--sys-color-2);
   transition:
     background-color 0.3s ease,
     border-color 0.3s ease,
@@ -562,19 +572,19 @@ main {
   margin: 5px 0;
 }
 .event-details strong {
-  color: var(--color-olive-dark);
+  color: var(--sys-color-1);
 }
 
 dialog {
-  border: 1px solid var(--color-brown);
+  border: 1px solid var(--sys-color-5);
   border-radius: 8px;
   padding: 20px;
   box-shadow: var(--shadow-lg);
   width: 80%;
   max-width: 500px;
   max-height: 70vh;
-  background-color: var(--color-cream);
-  color: var(--color-olive-dark);
+  background-color: var(--sys-color-3);
+  color: var(--sys-color-1);
   opacity: 0;
   transition:
     opacity 0.25s ease,
@@ -602,7 +612,7 @@ dialog::backdrop {
   margin-bottom: 4px;
   font-weight: 500;
   font-size: 0.9em;
-  color: var(--color-olive-dark);
+  color: var(--sys-color-1);
 }
 
 #event-form input[type="text"],
@@ -612,12 +622,12 @@ dialog::backdrop {
 #event-form textarea {
   width: calc(100% - 12px);
   padding: 8px;
-  border: 1px solid var(--color-brown);
+  border: 1px solid var(--sys-color-5);
   border-radius: 4px;
   font-size: 0.9em;
   box-sizing: border-box;
-  background-color: var(--color-cream);
-  color: var(--color-olive-dark);
+  background-color: var(--sys-color-3);
+  color: var(--sys-color-1);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
@@ -634,8 +644,7 @@ dialog::backdrop {
 #event-form input[type="color"]:focus,
 #event-form select:focus,
 #event-form textarea:focus {
-  border-color: var(--color-sand);
-  box-shadow: var(--focus-ring-sand);
+  border-color: var(--sys-color-4);
   outline: none;
 }
 
@@ -655,10 +664,10 @@ dialog::backdrop {
 .event-day-radio-group .radio-option {
   display: flex;
   align-items: center;
-  background-color: var(--color-olive-medium-lightest);
+  background-color: var(--sys-color-2-lightest);
   padding: 6px 10px;
   border-radius: 4px;
-  border: 1px solid var(--color-olive-medium);
+  border: 1px solid var(--sys-color-2);
   cursor: pointer;
   transition:
     background-color 0.2s ease,
@@ -666,12 +675,12 @@ dialog::backdrop {
 }
 
 .event-day-radio-group .radio-option:hover {
-  background-color: var(--color-olive-medium-light);
+  background-color: var(--sys-color-2-light);
 }
 
 .event-day-radio-group input[type="radio"] {
   margin-right: 8px;
-  accent-color: var(--color-sand);
+  accent-color: var(--sys-color-4);
   width: auto;
   padding: 0;
   border: none;
@@ -685,18 +694,18 @@ dialog::backdrop {
 .event-day-radio-group label {
   font-weight: normal;
   font-size: 0.9em;
-  color: var(--color-olive-dark);
+  color: var(--sys-color-1);
   cursor: pointer;
   margin-bottom: 0;
 }
 
 .event-day-radio-group input[type="radio"]:checked + label {
   font-weight: bold;
-  color: var(--color-brown);
+  color: var(--sys-color-5);
 }
 
 .event-day-radio-group .radio-option:has(input[type="radio"]:checked) {
-  background-color: var(--color-cream);
+  background-color: var(--sys-color-3);
 }
 
 .dialog-buttons {
@@ -723,37 +732,37 @@ dialog::backdrop {
 }
 
 #save-event-btn {
-  background-color: var(--color-sand);
-  color: var(--color-olive-dark);
+  background-color: var(--sys-color-4);
+  color: var(--sys-color-1);
 }
 #save-event-btn:hover {
-  background-color: var(--color-brown);
-  color: var(--color-cream);
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
 }
 
 #duplicate-event-btn {
-  background-color: var(--color-olive-medium-light);
-  color: var(--color-olive-dark);
+  background-color: var(--sys-color-2-light);
+  color: var(--sys-color-1);
 }
 #duplicate-event-btn:hover {
-  background-color: var(--color-olive-medium);
-  color: var(--color-cream);
+  background-color: var(--sys-color-2);
+  color: var(--sys-color-3);
 }
 
 #delete-event-btn {
-  background-color: var(--color-brown);
-  color: var(--color-cream);
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
 }
 #delete-event-btn:hover {
-  background-color: var(--color-brown-dark);
+  background-color: var(--sys-color-5-dark);
 }
 
 #cancel-event-btn {
-  background-color: var(--color-olive-medium);
-  color: var(--color-cream);
+  background-color: var(--sys-color-2);
+  color: var(--sys-color-3);
 }
 #cancel-event-btn:hover {
-  background-color: var(--color-olive-dark);
+  background-color: var(--sys-color-1);
 }
 
 .hidden {
@@ -762,8 +771,8 @@ dialog::backdrop {
 
 #timeline-tooltip {
   position: fixed;
-  background-color: var(--color-olive-dark);
-  color: var(--color-cream);
+  background-color: var(--sys-color-1);
+  color: var(--sys-color-3);
   padding: 5px 10px;
   border-radius: 4px;
   font-size: 0.8em;
@@ -788,7 +797,7 @@ dialog::backdrop {
 
 #custom-dialog h2 {
   font-size: 1.2em;
-  color: var(--color-olive-dark);
+  color: var(--sys-color-1);
   margin-top: 0;
   margin-bottom: 15px;
 }
@@ -796,33 +805,33 @@ dialog::backdrop {
 #custom-dialog p {
   margin-bottom: 20px;
   line-height: 1.5;
-  color: var(--color-olive-dark);
+  color: var(--sys-color-1);
 }
 
 #custom-dialog .dialog-buttons button.confirm-btn {
-  background-color: var(--color-sand);
-  color: var(--color-olive-dark);
+  background-color: var(--sys-color-4);
+  color: var(--sys-color-1);
 }
 #custom-dialog .dialog-buttons button.confirm-btn:hover {
-  background-color: var(--color-brown);
-  color: var(--color-cream);
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
 }
 
 #custom-dialog .dialog-buttons button.cancel-btn {
-  background-color: var(--color-olive-medium);
-  color: var(--color-cream);
+  background-color: var(--sys-color-2);
+  color: var(--sys-color-3);
 }
 #custom-dialog .dialog-buttons button.cancel-btn:hover {
-  background-color: var(--color-olive-dark);
+  background-color: var(--sys-color-1);
 }
 
 #custom-dialog .dialog-buttons button.alert-ok-btn {
-  background-color: var(--color-sand);
-  color: var(--color-olive-dark);
+  background-color: var(--sys-color-4);
+  color: var(--sys-color-1);
 }
 #custom-dialog .dialog-buttons button.alert-ok-btn:hover {
-  background-color: var(--color-brown);
-  color: var(--color-cream);
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
 }
 
 #mobile-sidebar {
@@ -831,7 +840,7 @@ dialog::backdrop {
   left: -280px;
   width: 250px;
   height: 100%;
-  background-color: var(--color-cream);
+  background-color: var(--sys-color-3);
   box-shadow: var(--shadow-lg);
   z-index: 1001;
   transition: left 0.3s ease-in-out;
@@ -840,7 +849,7 @@ dialog::backdrop {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  border-right: 1px solid var(--color-olive-medium);
+  border-right: 1px solid var(--sys-color-2);
 }
 
 #mobile-sidebar.open {
@@ -884,7 +893,7 @@ dialog::backdrop {
   flex-direction: column;
   flex-grow: 1;
   min-width: 0;
-  max-width: 70%;
+  max-width: 60%;
 }
 
 .zoom-controls-mobile p {
@@ -909,12 +918,12 @@ dialog::backdrop {
   align-items: center;
   justify-content: center;
   z-index: 3000;
-  color: var(--color-cream);
+  color: var(--sys-color-3);
 }
 
 .loading-spinner {
-  border: 4px solid var(--color-olive-medium-lightest);
-  border-top: 4px solid var(--color-sand);
+  border: 4px solid var(--sys-color-2-lightest);
+  border-top: 4px solid var(--sys-color-4);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -928,10 +937,10 @@ dialog::backdrop {
 }
 
 #loading-overlay a {
-  color: var(--color-sand);
+  color: var(--sys-color-4);
   text-decoration: none;
   padding: 8px 15px;
-  border: 1px solid var(--color-sand);
+  border: 1px solid var(--sys-color-4);
   border-radius: 4px;
   transition:
     background-color 0.2s ease,
@@ -939,8 +948,8 @@ dialog::backdrop {
 }
 
 #loading-overlay a:hover {
-  background-color: var(--color-sand);
-  color: var(--color-olive-dark);
+  background-color: var(--sys-color-4);
+  color: var(--sys-color-1);
 }
 
 @keyframes spin {
@@ -950,6 +959,27 @@ dialog::backdrop {
   100% {
     transform: rotate(360deg);
   }
+}
+
+footer {
+  display: flex;
+  background-color: var(--sys-color-1);
+  color: var(--sys-color-3);
+  text-align: center;
+  padding: 15px 20px;
+  font-size: 0.9em;
+  border-top: 1px solid var(--sys-color-2);
+  margin-top: auto;
+  justify-content: space-between;
+}
+
+footer a {
+  color: var(--sys-color-4);
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 768px) {
@@ -964,9 +994,10 @@ dialog::backdrop {
     gap: 8px;
   }
 
-  .event-actions button {
+  /* Removed display: none from .event-actions button to make them visible on mobile */
+  /* .event-actions button {
     display: none;
-  }
+  } */
 
   .header-actions .data-management-controls {
     display: none;
@@ -997,7 +1028,7 @@ dialog::backdrop {
   }
 
   .event-list-item {
-    padding: 12px 8px;
+    padding: 12px 0px;
     align-items: flex-start;
   }
 
@@ -1018,13 +1049,13 @@ dialog::backdrop {
     order: 3;
     display: flex;
     flex-direction: row;
-    gap: 0px;
+    gap: 0px; /* Consider adding a small gap e.g. 5px if icons are too close */
     margin-right: 8px;
     align-self: center;
     flex-shrink: 0;
   }
   .event-actions button {
-    padding: 6px;
+    padding: 6px; /* This padding will surround the SVG icon */
   }
 
   .event-title-time-wrapper {

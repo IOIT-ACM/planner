@@ -49,8 +49,9 @@
         max-width: 600px;
         margin: 20px auto;
         padding: 20px;
-        background-color: var(--color-cream);
+        background-color: var(--sys-color-3);
         border-radius: 8px;
+        /* flex-grow: 1; /* Already handled by 'main' selector in index.css */
       }
       .load-container {
         display: flex;
@@ -65,15 +66,15 @@
       .load-container input[type="url"] {
         width: calc(100% - 16px);
         padding: 8px;
-        border: 1px solid var(--color-brown);
+        border: 1px solid var(--sys-color-5);
         border-radius: 4px;
         font-size: 0.9em;
         box-sizing: border-box;
       }
       .load-container button {
         padding: 10px 15px;
-        background-color: var(--color-sand);
-        color: var(--color-olive-dark);
+        background-color: var(--sys-color-4);
+        color: var(--sys-color-1);
         border: none;
         border-radius: 4px;
         cursor: pointer;
@@ -83,24 +84,24 @@
           color 0.2s ease;
       }
       .load-container button:hover {
-        background-color: var(--color-brown);
-        color: var(--color-cream);
+        background-color: var(--sys-color-5);
+        color: var(--sys-color-3);
       }
       .error-message {
-        color: var(--color-brown-dark);
+        color: var(--sys-color-5-dark);
         background-color: #fdd;
-        border: 1px solid var(--color-brown-dark);
+        border: 1px solid var(--sys-color-5-dark);
         padding: 10px;
         border-radius: 4px;
         margin-top: 10px;
         word-break: break-word;
       }
       .load-container a {
-        color: var(--color-olive-medium);
+        color: var(--sys-color-2);
         text-decoration: none;
       }
       .load-container a:hover {
-        color: var(--color-brown);
+        color: var(--sys-color-5);
         text-decoration: underline;
       }
     </style>
@@ -140,6 +141,16 @@
       <p>Loading the plan..</p>
       <a href="./index.html">Back to Planner</a>
     </div>
+
+    <footer>
+      Made with ❤️ by
+      <a
+        href="https://adimail.github.io/"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Aditya Godse</a
+      >
+    </footer>
 
     <script src="./js/load.js"></script>
   </body>

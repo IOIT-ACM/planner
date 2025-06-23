@@ -341,14 +341,20 @@ function initApp() {
         actionsSpan.classList.add("event-actions");
 
         const editBtn = document.createElement("button");
-        editBtn.innerHTML = "✏️";
         editBtn.title = "Edit Event";
+        const editIcon = document.createElement("img");
+        editIcon.src = "./icons/edit.svg";
+        editIcon.alt = "Edit";
+        editBtn.appendChild(editIcon);
         editBtn.addEventListener("click", () => openEditDialog(event.id));
         actionsSpan.appendChild(editBtn);
 
         const deleteListBtn = document.createElement("button");
-        deleteListBtn.innerHTML = "🗑️";
         deleteListBtn.title = "Delete Event";
+        const deleteIcon = document.createElement("img");
+        deleteIcon.src = "./icons/delete.svg";
+        deleteIcon.alt = "Delete";
+        deleteListBtn.appendChild(deleteIcon);
         deleteListBtn.addEventListener("click", () => {
           showCustomConfirm(
             `Are you sure you want to delete the event "<strong>${event.title}</strong>"?`,
