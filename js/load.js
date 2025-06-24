@@ -54,22 +54,27 @@ document.addEventListener("DOMContentLoaded", () => {
         typeof data.maxDays === "number" &&
         data.maxDays >= 0
       ) {
+        const projectTitle = data.projectTitle || "Loaded Project from URL";
+        const projectId = Date.now().toString();
+
         const plannerData = {
           events: data.events,
           maxDays: data.maxDays === 0 ? 1 : data.maxDays,
+          projectTitle: projectTitle,
+          projectId: projectId,
         };
 
         localStorage.setItem("eventPlannerData", JSON.stringify(plannerData));
         window.location.href = "./index.html";
       } else {
         throw new Error(
-          "Invalid JSON format. Expected { events: [], maxDays: N } where N is a non-negative number.",
+          "Invalid JSON format. Expected { events: [], maxDays: N, projectTitle: (optional) string } where N is a non-negative number.",
         );
       }
     } catch (error) {
       console.error("Error loading data:", error);
       displayError(
-        `Invalid URL or data format. Please ensure the URL is correct and returns JSON in the expected format (e.g., {"events": [...], "maxDays": 1}). Details: ${error.message}`,
+        `Invalid URL or data format. Please ensure the URL is correct and returns JSON in the expected format (e.g., {"events": [...], "maxDays": 1, "projectTitle": "My Project"}). Details: ${error.message}`,
       );
       hideLoader();
     }
