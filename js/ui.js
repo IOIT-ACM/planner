@@ -4,7 +4,12 @@ function showCustomAlert(message, title = "Alert") {
   const customDialogMessage = document.getElementById("custom-dialog-message");
   const customDialogButtons = document.getElementById("custom-dialog-buttons");
 
-  if (!customDialog || !customDialogTitle || !customDialogMessage || !customDialogButtons) {
+  if (
+    !customDialog ||
+    !customDialogTitle ||
+    !customDialogMessage ||
+    !customDialogButtons
+  ) {
     alert(`${title}: ${message}`);
     return;
   }
@@ -36,17 +41,22 @@ function showCustomConfirm(
   const customDialogMessage = document.getElementById("custom-dialog-message");
   const customDialogButtons = document.getElementById("custom-dialog-buttons");
 
-  if (!customDialog || !customDialogTitle || !customDialogMessage || !customDialogButtons) {
+  if (
+    !customDialog ||
+    !customDialogTitle ||
+    !customDialogMessage ||
+    !customDialogButtons
+  ) {
     if (confirm(`${title}: ${message}`)) {
-        if (typeof onConfirmCallback === "function") onConfirmCallback();
+      if (typeof onConfirmCallback === "function") onConfirmCallback();
     } else {
-        if (typeof onCancelCallback === "function") onCancelCallback();
+      if (typeof onCancelCallback === "function") onCancelCallback();
     }
     return;
   }
 
   customDialogTitle.textContent = title;
-  customDialogMessage.innerHTML = message; 
+  customDialogMessage.innerHTML = message;
   customDialogButtons.innerHTML = "";
 
   const confirmButton = document.createElement("button");
@@ -74,10 +84,10 @@ function showCustomConfirm(
   if (customDialog.showModal) {
     customDialog.showModal();
   } else {
-     if (confirm(`${title}: ${message}`)) {
-        if (typeof onConfirmCallback === "function") onConfirmCallback();
+    if (confirm(`${title}: ${message}`)) {
+      if (typeof onConfirmCallback === "function") onConfirmCallback();
     } else {
-        if (typeof onCancelCallback === "function") onCancelCallback();
+      if (typeof onCancelCallback === "function") onCancelCallback();
     }
   }
 }
@@ -121,4 +131,87 @@ function toggleEventDetails(listItem) {
   detailsDiv.classList.toggle("hidden", isExpanded);
   chevronBtn.innerHTML = isExpanded ? "▼" : "▲";
   chevronBtn.dataset.expanded = String(!isExpanded);
+}
+
+function showCustomPrompt(
+  message,
+  title = "Prompt",
+  defaultValue = "",
+  onConfirmCallback,
+  onCancelCallback,
+) {
+  const promptDialog = document.getElementById("new-project-prompt-dialog");
+  const promptTitleEl = document.getElementById(
+    "new-project-prompt-title-text",
+  );
+  const promptForm = document.getElementById("new-project-prompt-form");
+  const promptInput = document.getElementById("new-project-prompt-input");
+  const promptLabel = promptDialog.querySelector(
+    'label[for="new-project-prompt-input"]',
+  );
+  const confirmBtn = document.getElementById("confirm-new-project-prompt-btn");
+  const cancelBtn = document.getElementById("cancel-new-project-prompt-btn");
+
+  if (
+    !promptDialog ||
+    !promptTitleEl ||
+    !promptForm ||
+    !promptInput ||
+    !confirmBtn ||
+    !cancelBtn ||
+    !promptLabel
+  ) {
+    const userInput = window.prompt(title + "\n" + message, defaultValue);
+    if (userInput !== null) {
+      if (typeof onConfirmCallback === "function") onConfirmCallback(userInput);
+    } else {
+      if (typeof onCancelCallback === "function") onCancelCallback();
+    }
+    return;
+  }
+
+  promptTitleEl.textContent = title;
+  if (promptLabel) promptLabel.textContent = message;
+  promptInput.value = defaultValue;
+  promptInput.setAttribute("placeholder", "Enter project title");
+
+  const newConfirmBtn = confirmBtn.cloneNode(true);
+  confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+  const newCancelBtn = cancelBtn.cloneNode(true);
+  cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+  const newPromptForm = promptForm.cloneNode(true);
+  const newPromptInput = newPromptForm.querySelector(
+    "#new-project-prompt-input",
+  );
+  promptForm.parentNode.replaceChild(newPromptForm, promptForm);
+
+  newPromptForm.onsubmit = (e) => {
+    e.preventDefault();
+    const inputValue = newPromptInput.value.trim();
+    promptDialog.close();
+    if (typeof onConfirmCallback === "function") {
+      onConfirmCallback(inputValue);
+    }
+  };
+
+  newCancelBtn.onclick = () => {
+    promptDialog.close();
+    if (typeof onCancelCallback === "function") {
+      onCancelCallback();
+    }
+  };
+
+  if (promptDialog.showModal) {
+    promptDialog.showModal();
+    newPromptInput.focus();
+  } else {
+    const userInput = window.prompt(title + "\n" + message, defaultValue);
+    if (userInput !== null) {
+      if (typeof onConfirmCallback === "function") onConfirmCallback(userInput);
+    } else {
+      if (typeof onCancelCallback === "function") onCancelCallback();
+    }
+  }
 }

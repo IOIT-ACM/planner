@@ -54,11 +54,12 @@
       </div>
       <div class="header-actions">
         <div class="data-management-controls">
+          <button id="manage-projects-btn" title="Manage Projects">
+            Projects
+          </button>
           <button id="export-data-btn" title="Export Data">Export</button>
           <button id="import-data-btn" title="Import Data">Import</button>
-          <button id="clear-all-data-btn" title="Clear All Data">
-            Clear All
-          </button>
+          <button id="clear-all-data-btn" title="Clear All Data">Clear</button>
           <input
             type="file"
             id="import-file-input"
@@ -75,6 +76,9 @@
 
     <nav id="mobile-sidebar">
       <div class="data-management-controls">
+        <button id="manage-projects-btn-mobile" title="Manage Projects">
+          Projects
+        </button>
         <button id="export-data-btn-mobile" title="Export Data">Export</button>
         <button id="import-data-btn-mobile" title="Import Data">Import</button>
         <button id="clear-all-data-btn-mobile" title="Clear All Data">
@@ -85,6 +89,20 @@
     <div id="sidebar-overlay"></div>
 
     <main>
+      <div id="project-title-container">
+        <h2 id="current-project-title-display">Untitled Project</h2>
+        <button
+          id="edit-project-title-btn"
+          title="Edit Project Title"
+          class="border-none outline-none ring-0 focus:outline-none focus:ring-0 bg-transparent p-0"
+        >
+          <img
+            src="./icons/rename.svg"
+            alt="Edit Project Title"
+            style="width: 1.5em; height: 1.5em; vertical-align: middle"
+          />
+        </button>
+      </div>
       <div class="controls-panel">
         <div id="day-tabs-container" class="day-selector"></div>
         <div class="zoom-controls">
@@ -207,6 +225,62 @@
       <h2 id="custom-dialog-title"></h2>
       <p id="custom-dialog-message"></p>
       <div class="dialog-buttons" id="custom-dialog-buttons"></div>
+    </dialog>
+
+    <dialog id="projects-dialog">
+      <h2>Manage Projects</h2>
+      <h3>Saved Projects</h3>
+      <ul id="saved-projects-list"></ul>
+      <p id="no-saved-projects" class="hidden">No projects saved yet.</p>
+      <div class="dialog-buttons">
+        <button
+          type="button"
+          id="new-project-btn"
+          class="dialog-link-btn"
+          style="margin-right: auto"
+        >
+          New Project
+        </button>
+        <a href="./load.html" id="link-to-load-html" class="dialog-link-btn"
+          >Load from URL</a
+        >
+        <button id="load-selected-project-btn" disabled>Load Selected</button>
+        <button type="button" id="cancel-projects-dialog-btn">Close</button>
+      </div>
+    </dialog>
+
+    <dialog id="edit-project-title-dialog">
+      <h2>Edit Project Title</h2>
+      <form id="edit-project-title-form">
+        <div>
+          <label for="edit-project-title-input-main">Project Title:</label>
+          <input type="text" id="edit-project-title-input-main" required />
+        </div>
+        <div class="dialog-buttons">
+          <button type="submit" id="save-edited-project-title-btn">Save</button>
+          <button type="button" id="cancel-edit-project-title-btn">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="new-project-prompt-dialog">
+      <h2 id="new-project-prompt-title-text">Create New Project</h2>
+      <form id="new-project-prompt-form">
+        <div>
+          <label for="new-project-prompt-input">Project Title:</label>
+          <input type="text" id="new-project-prompt-input" required />
+        </div>
+        <div class="dialog-buttons">
+          <button type="submit" id="confirm-new-project-prompt-btn">
+            Create
+          </button>
+          <button type="button" id="cancel-new-project-prompt-btn">
+            Cancel
+          </button>
+        </div>
+      </form>
     </dialog>
 
     <script src="./js/utils.js"></script>

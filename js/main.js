@@ -47,9 +47,45 @@ function initApp() {
     "clear-all-data-btn-mobile",
   );
 
+  const manageProjectsBtn = document.getElementById("manage-projects-btn");
+  const manageProjectsBtnMobile = document.getElementById(
+    "manage-projects-btn-mobile",
+  );
+  const projectsDialog = document.getElementById("projects-dialog");
+
+  const newProjectBtn = document.getElementById("new-project-btn");
+  const savedProjectsListUI = document.getElementById("saved-projects-list");
+  const noSavedProjectsMsg = document.getElementById("no-saved-projects");
+  const loadSelectedProjectBtn = document.getElementById(
+    "load-selected-project-btn",
+  );
+  const cancelProjectsDialogBtn = document.getElementById(
+    "cancel-projects-dialog-btn",
+  );
+
+  const projectTitleDisplay = document.getElementById(
+    "current-project-title-display",
+  );
+  const editProjectTitleBtn = document.getElementById("edit-project-title-btn");
+  const editProjectTitleDialog = document.getElementById(
+    "edit-project-title-dialog",
+  );
+  const editProjectTitleForm = document.getElementById(
+    "edit-project-title-form",
+  );
+  const editProjectTitleInputMain = document.getElementById(
+    "edit-project-title-input-main",
+  );
+  const cancelEditProjectTitleBtn = document.getElementById(
+    "cancel-edit-project-title-btn",
+  );
+
   let events = [];
   let currentDay = 1;
   let maxDays = 1;
+  let currentProjectTitle = "Untitled Project";
+  let currentProjectId = null;
+
   let timelineScale = 60;
   const TIMELINE_START_HOUR = 0;
   const TIMELINE_END_HOUR = 24;
@@ -69,25 +105,127 @@ function initApp() {
   let newEventStartPos = { x: 0, y: 0 };
   let ghostEventBlock = null;
 
-  function saveEvents() {
-    localStorage.setItem(
-      "eventPlannerData",
-      JSON.stringify({ events, maxDays }),
-    );
+  let savedProjects = [];
+  const PROJECTS_STORAGE_KEY = "eventPlannerProjects";
+  let dialogSelectedProjectId = null;
+
+  function makeTitleUnique(title, baseTitle = "Project") {
+    let newTitle = title.trim() || baseTitle;
+    let counter = 1;
+    const existingTitles = savedProjects.map((p) => p.title);
+    while (existingTitles.includes(newTitle)) {
+      newTitle = `${title.trim() || baseTitle} (${counter})`;
+      counter++;
+    }
+    return newTitle;
   }
 
-  function loadEvents() {
-    const storedData = localStorage.getItem("eventPlannerData");
-    if (storedData) {
-      const parsedData = JSON.parse(storedData);
-      events = parsedData.events || [];
-      maxDays = parsedData.maxDays || 1;
-      if (maxDays === 0) maxDays = 1;
-      currentDay = Math.min(currentDay, maxDays);
-      currentDay = Math.max(1, currentDay);
+  function loadSavedProjects() {
+    const storedProjects = localStorage.getItem(PROJECTS_STORAGE_KEY);
+    if (storedProjects) {
+      try {
+        savedProjects = JSON.parse(storedProjects);
+        if (!Array.isArray(savedProjects)) {
+          savedProjects = [];
+        }
+      } catch (e) {
+        savedProjects = [];
+        console.error("Error parsing saved projects from localStorage:", e);
+      }
+    } else {
+      savedProjects = [];
     }
-    updateDayRadioOptions();
   }
+
+  function saveCurrentProjectState() {
+    localStorage.setItem(
+      "eventPlannerData",
+      JSON.stringify({
+        events,
+        maxDays,
+        projectTitle: currentProjectTitle,
+        projectId: currentProjectId,
+      }),
+    );
+
+    if (currentProjectId) {
+      const projectInSaved = savedProjects.find(
+        (p) => p.id === currentProjectId,
+      );
+      if (projectInSaved) {
+        projectInSaved.data.events = JSON.parse(JSON.stringify(events));
+        projectInSaved.data.maxDays = maxDays;
+        projectInSaved.title = currentProjectTitle;
+        localStorage.setItem(
+          PROJECTS_STORAGE_KEY,
+          JSON.stringify(savedProjects),
+        );
+      }
+    }
+  }
+
+  function renderProjectTitleDisplay() {
+    projectTitleDisplay.textContent = currentProjectTitle;
+  }
+
+  editProjectTitleBtn.addEventListener("click", () => {
+    editProjectTitleInputMain.value =
+      currentProjectTitle === "Untitled Project" && !currentProjectId
+        ? ""
+        : currentProjectTitle;
+    if (editProjectTitleDialog.showModal) editProjectTitleDialog.showModal();
+  });
+
+  cancelEditProjectTitleBtn.addEventListener("click", () => {
+    editProjectTitleDialog.close();
+  });
+
+  editProjectTitleForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const newTitle = editProjectTitleInputMain.value.trim();
+    if (!newTitle) {
+      showCustomAlert("Project title cannot be empty.", "Invalid Title");
+      return;
+    }
+
+    if (
+      savedProjects.some(
+        (p) => p.title === newTitle && p.id !== currentProjectId,
+      )
+    ) {
+      showCustomAlert(
+        "A project with this title already exists. Please choose a different title.",
+        "Save Project Error",
+      );
+      return;
+    }
+
+    const existingProject = currentProjectId
+      ? savedProjects.find((p) => p.id === currentProjectId)
+      : null;
+
+    if (existingProject) {
+      existingProject.title = newTitle;
+    } else {
+      const newId = Date.now().toString();
+      const newProjectEntry = {
+        id: newId,
+        title: newTitle,
+        data: {
+          events: JSON.parse(JSON.stringify(events)),
+          maxDays: maxDays,
+        },
+      };
+      savedProjects.push(newProjectEntry);
+      currentProjectId = newId;
+    }
+
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(savedProjects));
+    currentProjectTitle = newTitle;
+    saveCurrentProjectState();
+    renderProjectTitleDisplay();
+    editProjectTitleDialog.close();
+  });
 
   function updateDayRadioOptions() {
     eventDayRadioGroup.innerHTML = "";
@@ -135,7 +273,7 @@ function initApp() {
     addDayButton.addEventListener("click", () => {
       maxDays++;
       updateDayRadioOptions();
-      saveEvents();
+      saveCurrentProjectState();
       renderDayTabs();
     });
     dayTabsContainer.appendChild(addDayButton);
@@ -287,7 +425,10 @@ function initApp() {
         parseFloat(eventBlock.style.top) + eventHeight + eventMargin,
       );
     });
-    timelineEventsContainer.style.height = `${Math.max(maxBottom, EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN)}px`;
+    timelineEventsContainer.style.height = `${Math.max(
+      maxBottom,
+      EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN,
+    )}px`;
   }
 
   function renderEventList() {
@@ -324,7 +465,7 @@ function initApp() {
           const targetEvent = events.find((ev) => ev.id === event.id);
           if (targetEvent) {
             targetEvent.color = e.target.value;
-            saveEvents();
+            saveCurrentProjectState();
             renderTimeline();
             const timelineBlock = timelineEventsContainer.querySelector(
               `.event-block[data-event-id="${event.id}"]`,
@@ -361,7 +502,7 @@ function initApp() {
             "Delete Event",
             () => {
               events = events.filter((ev) => ev.id !== event.id);
-              saveEvents();
+              saveCurrentProjectState();
               renderAll();
             },
           );
@@ -503,7 +644,7 @@ function initApp() {
     } else {
       events.push(eventData);
     }
-    saveEvents();
+    saveCurrentProjectState();
     renderAll();
     eventDialog.close();
   });
@@ -516,7 +657,7 @@ function initApp() {
         "Delete Event",
         () => {
           events = events.filter((event) => event.id !== id);
-          saveEvents();
+          saveCurrentProjectState();
           renderAll();
           eventDialog.close();
         },
@@ -565,7 +706,7 @@ function initApp() {
     };
 
     events.push(newEvent);
-    saveEvents();
+    saveCurrentProjectState();
     renderAll();
     eventDialog.close();
   });
@@ -934,7 +1075,7 @@ function initApp() {
         } else {
           draggingEvent.endTime = formatMinutesToTime(newEndMinutes);
         }
-        saveEvents();
+        saveCurrentProjectState();
         renderAll();
       }
     } else if (resizingEvent) {
@@ -1020,7 +1161,7 @@ function initApp() {
         } else {
           resizingEvent.endTime = formatMinutesToTime(finalEndMinutes);
         }
-        saveEvents();
+        saveCurrentProjectState();
         renderAll();
       }
     }
@@ -1042,6 +1183,7 @@ function initApp() {
 
   function handleExportData() {
     const dataToExport = {
+      projectTitle: currentProjectTitle,
       events: events,
       maxDays: maxDays,
     };
@@ -1050,7 +1192,10 @@ function initApp() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "event-planner-data.json";
+    a.download = `${
+      currentProjectTitle.replace(/[^a-z0-9]/gi, "_").toLowerCase() ||
+      "event-planner"
+    }-data.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1069,24 +1214,41 @@ function initApp() {
           Array.isArray(importedData.events) &&
           typeof importedData.maxDays === "number"
         ) {
-          showCustomConfirm(
-            "Importing this file will overwrite current data. Continue?",
-            "Import Data",
-            () => {
-              events = importedData.events;
-              maxDays = importedData.maxDays || 1;
-              if (maxDays === 0) maxDays = 1;
-              currentDay = 1;
-              saveEvents();
-              updateDayRadioOptions();
-              renderAll();
-              closeMobileSidebar();
-              FitTimelineOnPage();
+          const importedTitleBase =
+            importedData.projectTitle || "Imported Project";
+          const uniqueImportedTitle = makeTitleUnique(importedTitleBase);
+          const newProjectId = Date.now().toString();
+
+          const newProjectEntry = {
+            id: newProjectId,
+            title: uniqueImportedTitle,
+            data: {
+              events: JSON.parse(JSON.stringify(importedData.events)),
+              maxDays: importedData.maxDays,
             },
+          };
+          savedProjects.push(newProjectEntry);
+          localStorage.setItem(
+            PROJECTS_STORAGE_KEY,
+            JSON.stringify(savedProjects),
           );
+
+          events = JSON.parse(JSON.stringify(importedData.events));
+          maxDays = importedData.maxDays || 1;
+          currentProjectTitle = uniqueImportedTitle;
+          currentProjectId = newProjectId;
+
+          if (maxDays === 0) maxDays = 1;
+          currentDay = 1;
+          saveCurrentProjectState();
+          updateDayRadioOptions();
+          renderAll();
+          renderProjectTitleDisplay();
+          closeMobileSidebar();
+          FitTimelineOnPage();
         } else {
           showCustomAlert(
-            "Invalid file format. Expected { events: [], maxDays: N }",
+            "Invalid file format. Expected { projectTitle: (optional) string, events: [], maxDays: N }",
             "Import Error",
           );
         }
@@ -1147,7 +1309,7 @@ function initApp() {
             currentDay = maxDays;
           }
           currentDay = Math.max(1, currentDay);
-          saveEvents();
+          saveCurrentProjectState();
           updateDayRadioOptions();
           renderAll();
           FitTimelineOnPage();
@@ -1159,7 +1321,7 @@ function initApp() {
         "Clear Day Events",
         () => {
           events = events.filter((event) => event.day !== currentDay);
-          saveEvents();
+          saveCurrentProjectState();
           renderAll();
           FitTimelineOnPage();
         },
@@ -1168,14 +1330,17 @@ function initApp() {
   });
 
   function handleClearAllData() {
+    const projectToClearName = currentProjectTitle;
+
     showCustomConfirm(
-      "Do you really want to delete ALL data for ALL days? This action cannot be undone and will reset the planner.",
-      "Clear All Data",
+      `Are you sure you want to clear all events for "<strong>${projectToClearName}</strong>"? The project title will be kept, but all its scheduled events will be removed. This action cannot be undone.`,
+      `Clear Events for ${projectToClearName}`,
       () => {
         events = [];
         maxDays = 1;
-        currentDay = 1;
-        saveEvents();
+
+        saveCurrentProjectState();
+
         updateDayRadioOptions();
         renderAll();
         FitTimelineOnPage();
@@ -1199,13 +1364,294 @@ function initApp() {
   mobileMenuBtn.addEventListener("click", openMobileSidebar);
   sidebarOverlay.addEventListener("click", closeMobileSidebar);
 
+  function openProjectsDialog() {
+    dialogSelectedProjectId = null;
+    renderSavedProjectsList();
+    loadSelectedProjectBtn.disabled = true;
+    if (projectsDialog.showModal) projectsDialog.showModal();
+  }
+
+  newProjectBtn.addEventListener("click", () => {
+    showCustomPrompt(
+      "Enter a title for the new project:",
+      "Create New Project",
+      "",
+      (newTitle) => {
+        if (!newTitle) {
+          showCustomAlert("Project title cannot be empty.", "Creation Error");
+          return;
+        }
+        const uniqueNewTitle = makeTitleUnique(newTitle);
+
+        events = [];
+        maxDays = 1;
+        currentDay = 1;
+        currentProjectTitle = uniqueNewTitle;
+        currentProjectId = Date.now().toString();
+
+        const newProjectEntry = {
+          id: currentProjectId,
+          title: currentProjectTitle,
+          data: { events: [], maxDays: 1 },
+        };
+        savedProjects.push(newProjectEntry);
+        localStorage.setItem(
+          PROJECTS_STORAGE_KEY,
+          JSON.stringify(savedProjects),
+        );
+
+        saveCurrentProjectState();
+
+        renderProjectTitleDisplay();
+        updateDayRadioOptions();
+        renderAll();
+        FitTimelineOnPage();
+
+        renderSavedProjectsList();
+
+        dialogSelectedProjectId = currentProjectId;
+        loadSelectedProjectBtn.disabled = false;
+
+        const listItem = savedProjectsListUI.querySelector(
+          `li[data-project-id="${currentProjectId}"]`,
+        );
+        if (listItem) {
+          Array.from(savedProjectsListUI.children).forEach((child) =>
+            child.classList.remove("selected", "is-current-workspace"),
+          );
+          listItem.classList.add("selected", "is-current-workspace");
+        }
+      },
+    );
+  });
+
+  function renderSavedProjectsList() {
+    savedProjectsListUI.innerHTML = "";
+    if (savedProjects.length === 0) {
+      noSavedProjectsMsg.classList.remove("hidden");
+      savedProjectsListUI.classList.add("hidden");
+    } else {
+      noSavedProjectsMsg.classList.add("hidden");
+      savedProjectsListUI.classList.remove("hidden");
+      savedProjects.forEach((proj) => {
+        const li = document.createElement("li");
+        li.textContent = proj.title;
+        li.dataset.projectId = proj.id;
+
+        if (proj.id === currentProjectId) {
+          li.classList.add("is-current-workspace");
+        }
+        if (proj.id === dialogSelectedProjectId) {
+          li.classList.add("selected");
+        }
+
+        li.addEventListener("click", () => {
+          if (dialogSelectedProjectId === proj.id) {
+            dialogSelectedProjectId = null;
+            li.classList.remove("selected");
+            loadSelectedProjectBtn.disabled = true;
+          } else {
+            dialogSelectedProjectId = proj.id;
+            Array.from(savedProjectsListUI.children).forEach((child) =>
+              child.classList.remove("selected"),
+            );
+            li.classList.add("selected");
+            loadSelectedProjectBtn.disabled = false;
+          }
+        });
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.classList.add("delete-project-btn");
+        deleteBtn.title = `Delete project: ${proj.title}`;
+        deleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          showCustomConfirm(
+            `Are you sure you want to delete project "<strong>${proj.title}</strong>"? This cannot be undone.`,
+            "Delete Project",
+            () => {
+              deleteSavedProject(proj.id);
+            },
+          );
+        });
+        li.appendChild(deleteBtn);
+        savedProjectsListUI.appendChild(li);
+      });
+    }
+    if (!savedProjects.find((p) => p.id === dialogSelectedProjectId)) {
+      dialogSelectedProjectId = null;
+      loadSelectedProjectBtn.disabled = true;
+    }
+  }
+
+  function handleLoadSelectedProject() {
+    if (!dialogSelectedProjectId) {
+      showCustomAlert("No project selected to load.", "Load Error");
+      return;
+    }
+    const projectToLoad = savedProjects.find(
+      (proj) => proj.id === dialogSelectedProjectId,
+    );
+    if (!projectToLoad) {
+      showCustomAlert("Selected project not found.", "Load Error");
+      return;
+    }
+
+    events = JSON.parse(JSON.stringify(projectToLoad.data.events));
+    maxDays = projectToLoad.data.maxDays;
+    currentProjectTitle = projectToLoad.title;
+    currentProjectId = projectToLoad.id;
+    currentDay = 1;
+
+    saveCurrentProjectState();
+    updateDayRadioOptions();
+    renderAll();
+    renderProjectTitleDisplay();
+    FitTimelineOnPage();
+    projectsDialog.close();
+    dialogSelectedProjectId = null;
+  }
+
+  function deleteSavedProject(projectIdToDelete) {
+    savedProjects = savedProjects.filter(
+      (proj) => proj.id !== projectIdToDelete,
+    );
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(savedProjects));
+
+    if (currentProjectId === projectIdToDelete) {
+      if (savedProjects.length > 0) {
+        const firstProject = savedProjects[0];
+        events = JSON.parse(JSON.stringify(firstProject.data.events));
+        maxDays = firstProject.data.maxDays;
+        currentProjectTitle = firstProject.title;
+        currentProjectId = firstProject.id;
+      } else {
+        events = [];
+        maxDays = 1;
+        currentProjectTitle = "Untitled Project";
+        const newId = Date.now().toString();
+        currentProjectId = newId;
+        savedProjects.push({
+          id: newId,
+          title: "Untitled Project",
+          data: { events: [], maxDays: 1 },
+        });
+        localStorage.setItem(
+          PROJECTS_STORAGE_KEY,
+          JSON.stringify(savedProjects),
+        );
+      }
+      saveCurrentProjectState();
+      renderProjectTitleDisplay();
+      renderAll();
+    }
+    if (dialogSelectedProjectId === projectIdToDelete) {
+      dialogSelectedProjectId = null;
+      loadSelectedProjectBtn.disabled = true;
+    }
+    renderSavedProjectsList();
+  }
+
+  manageProjectsBtn.addEventListener("click", openProjectsDialog);
+  if (manageProjectsBtnMobile) {
+    manageProjectsBtnMobile.addEventListener("click", () => {
+      openProjectsDialog();
+      closeMobileSidebar();
+    });
+  }
+
+  loadSelectedProjectBtn.addEventListener("click", handleLoadSelectedProject);
+  cancelProjectsDialogBtn.addEventListener("click", () => {
+    projectsDialog.close();
+    dialogSelectedProjectId = null;
+  });
+
   function renderAll() {
     renderDayTabs();
     renderTimeline();
     renderEventList();
   }
 
-  loadEvents();
+  loadSavedProjects();
+
+  const storedCurrentDataText = localStorage.getItem("eventPlannerData");
+  let initialLoadPerformed = false;
+
+  if (storedCurrentDataText) {
+    const storedCurrentData = JSON.parse(storedCurrentDataText);
+    const storedProjectId = storedCurrentData.projectId;
+    const storedProjectTitle =
+      storedCurrentData.projectTitle || "Untitled Project";
+
+    if (
+      storedProjectId &&
+      savedProjects.find((p) => p.id === storedProjectId)
+    ) {
+      const projectToLoad = savedProjects.find((p) => p.id === storedProjectId);
+      events = JSON.parse(JSON.stringify(projectToLoad.data.events));
+      maxDays = projectToLoad.data.maxDays;
+      currentProjectTitle = projectToLoad.title;
+      currentProjectId = projectToLoad.id;
+      initialLoadPerformed = true;
+    } else if (
+      (storedCurrentData.events && storedCurrentData.events.length > 0) ||
+      storedProjectTitle !== "Untitled Project" ||
+      (storedCurrentData.maxDays && storedCurrentData.maxDays > 1)
+    ) {
+      const titleBase =
+        storedProjectTitle === "Untitled Project"
+          ? "Untitled Project"
+          : storedProjectTitle;
+      const uniqueTitle = makeTitleUnique(titleBase);
+      const newId = Date.now().toString();
+
+      currentProjectId = newId;
+      currentProjectTitle = uniqueTitle;
+      events = storedCurrentData.events || [];
+      maxDays = storedCurrentData.maxDays || 1;
+
+      const newEntry = {
+        id: currentProjectId,
+        title: currentProjectTitle,
+        data: { events: JSON.parse(JSON.stringify(events)), maxDays: maxDays },
+      };
+      savedProjects.push(newEntry);
+      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(savedProjects));
+      initialLoadPerformed = true;
+    }
+  }
+
+  if (!initialLoadPerformed) {
+    if (savedProjects.length > 0) {
+      const firstProject = savedProjects[0];
+      events = JSON.parse(JSON.stringify(firstProject.data.events));
+      maxDays = firstProject.data.maxDays;
+      currentProjectTitle = firstProject.title;
+      currentProjectId = firstProject.id;
+    } else {
+      const defaultId = Date.now().toString();
+      currentProjectId = defaultId;
+      currentProjectTitle = "Untitled Project";
+      events = [];
+      maxDays = 1;
+
+      const defaultEntry = {
+        id: currentProjectId,
+        title: currentProjectTitle,
+        data: { events: JSON.parse(JSON.stringify(events)), maxDays: maxDays },
+      };
+      savedProjects.push(defaultEntry);
+      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(savedProjects));
+    }
+  }
+
+  if (maxDays === 0) maxDays = 1;
+  currentDay = Math.min(currentDay, maxDays);
+  currentDay = Math.max(1, currentDay);
+
+  saveCurrentProjectState();
+  updateDayRadioOptions();
+  renderProjectTitleDisplay();
   renderAll();
   FitTimelineOnPage();
 }

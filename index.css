@@ -113,6 +113,34 @@ main {
   flex-direction: column;
 }
 
+#project-title-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+#current-project-title-display {
+  font-size: 1.3em;
+  color: var(--sys-color-1);
+  margin: 0;
+  font-weight: 600;
+}
+
+#edit-project-title-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1em;
+  padding: 2px 5px;
+  color: var(--sys-color-2);
+  transition: color 0.2s ease;
+}
+
+#edit-project-title-btn:hover {
+  color: var(--sys-color-5);
+}
+
 .controls-panel {
   display: flex;
   justify-content: space-between;
@@ -515,15 +543,13 @@ main {
   transition:
     color 0.2s ease,
     transform 0.1s ease;
-  display: inline-flex; /* For aligning image inside */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 .event-actions button:hover,
 .event-list-chevron-btn:hover {
-  color: var(
-    --sys-color-4
-  ); /* This will affect text color if any, not img src */
+  color: var(--sys-color-4);
 }
 
 .event-actions button img {
@@ -603,11 +629,13 @@ dialog::backdrop {
   transition: background-color 0.3s ease;
 }
 
-#event-form div {
+#event-form div,
+#edit-project-title-form div {
   margin-bottom: 12px;
 }
 
-#event-form label {
+#event-form label,
+#edit-project-title-form label {
   display: block;
   margin-bottom: 4px;
   font-weight: 500;
@@ -619,7 +647,8 @@ dialog::backdrop {
 #event-form input[type="time"],
 #event-form input[type="color"],
 #event-form select,
-#event-form textarea {
+#event-form textarea,
+#edit-project-title-form input[type="text"] {
   width: calc(100% - 12px);
   padding: 8px;
   border: 1px solid var(--sys-color-5);
@@ -643,7 +672,8 @@ dialog::backdrop {
 #event-form input[type="time"]:focus,
 #event-form input[type="color"]:focus,
 #event-form select:focus,
-#event-form textarea:focus {
+#event-form textarea:focus,
+#edit-project-title-form input[type="text"]:focus {
   border-color: var(--sys-color-4);
   outline: none;
 }
@@ -731,11 +761,13 @@ dialog::backdrop {
   box-shadow: var(--shadow-sm);
 }
 
-#save-event-btn {
+#save-event-btn,
+#save-edited-project-title-btn {
   background-color: var(--sys-color-4);
   color: var(--sys-color-1);
 }
-#save-event-btn:hover {
+#save-event-btn:hover,
+#save-edited-project-title-btn:hover {
   background-color: var(--sys-color-5);
   color: var(--sys-color-3);
 }
@@ -757,11 +789,15 @@ dialog::backdrop {
   background-color: var(--sys-color-5-dark);
 }
 
-#cancel-event-btn {
+#cancel-event-btn,
+#cancel-projects-dialog-btn,
+#cancel-edit-project-title-btn {
   background-color: var(--sys-color-2);
   color: var(--sys-color-3);
 }
-#cancel-event-btn:hover {
+#cancel-event-btn:hover,
+#cancel-projects-dialog-btn:hover,
+#cancel-edit-project-title-btn:hover {
   background-color: var(--sys-color-1);
 }
 
@@ -982,6 +1018,251 @@ footer a:hover {
   text-decoration: underline;
 }
 
+#projects-dialog #save-project-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+#projects-dialog #save-project-section label {
+  display: block;
+  margin-bottom: -5px;
+  font-weight: 500;
+  font-size: 0.9em;
+  color: var(--sys-color-1);
+}
+
+#projects-dialog #save-project-section input[type="text"] {
+  width: calc(100% - 16px);
+  padding: 8px;
+  border: 1px solid var(--sys-color-5);
+  border-radius: 4px;
+  font-size: 0.9em;
+  box-sizing: border-box;
+  background-color: var(--sys-color-3);
+  color: var(--sys-color-1);
+}
+#projects-dialog #save-project-section input[type="text"]:focus {
+  border-color: var(--sys-color-4);
+  outline: none;
+}
+
+#projects-dialog #save-current-project-btn {
+  padding: 8px 15px;
+  background-color: var(--sys-color-4);
+  color: var(--sys-color-1);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+#projects-dialog #save-current-project-btn:hover {
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
+}
+
+#projects-dialog h3 {
+  margin-top: 15px;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+  color: var(--sys-color-1);
+}
+
+#saved-projects-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0 0 15px 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--sys-color-2-lightest);
+  border-radius: 4px;
+  background-color: var(--sys-color-3);
+}
+
+#saved-projects-list li {
+  padding: 10px;
+  border-bottom: 1px solid var(--sys-color-2-lightest);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+#saved-projects-list li:last-child {
+  border-bottom: none;
+}
+#saved-projects-list li:hover {
+  background-color: var(--sys-color-2-lightest);
+}
+#saved-projects-list li.selected {
+  background-color: var(--sys-color-4);
+  color: var(--sys-color-1);
+  font-weight: bold;
+}
+#saved-projects-list li.selected:hover {
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
+}
+#saved-projects-list li.is-current-workspace {
+  background-color: var(--sys-color-2-light);
+  color: var(--sys-color-3);
+  font-style: italic;
+}
+#saved-projects-list li.is-current-workspace:hover {
+  background-color: var(--sys-color-2);
+}
+#saved-projects-list li.is-current-workspace.selected {
+  background-color: var(--sys-color-4);
+  color: var(--sys-color-1);
+  font-weight: bold;
+  font-style: normal;
+}
+
+#new-project-prompt-dialog {
+  max-width: 400px;
+}
+#new-project-prompt-dialog h2 {
+  /* Matches #custom-dialog h2 */
+  font-size: 1.2em;
+  color: var(--sys-color-1);
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+#new-project-prompt-form div {
+  /* Matches #event-form div */
+  margin-bottom: 12px;
+}
+#new-project-prompt-form label {
+  /* Matches #event-form label */
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+  font-size: 0.9em;
+  color: var(--sys-color-1);
+}
+#new-project-prompt-form input[type="text"] {
+  /* Matches #event-form input[type="text"] */
+  width: calc(100% - 12px);
+  padding: 8px;
+  border: 1px solid var(--sys-color-5);
+  border-radius: 4px;
+  font-size: 0.9em;
+  box-sizing: border-box;
+  background-color: var(--sys-color-3);
+  color: var(--sys-color-1);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+#new-project-prompt-form input[type="text"]:focus {
+  /* Matches focus style */
+  border-color: var(--sys-color-4);
+  outline: none;
+}
+#confirm-new-project-prompt-btn {
+  /* Matches #save-event-btn */
+  background-color: var(--sys-color-4);
+  color: var(--sys-color-1);
+}
+#confirm-new-project-prompt-btn:hover {
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
+}
+#cancel-new-project-prompt-btn {
+  /* Matches #cancel-event-btn */
+  background-color: var(--sys-color-2);
+  color: var(--sys-color-3);
+}
+#cancel-new-project-prompt-btn:hover {
+  background-color: var(--sys-color-1);
+}
+
+#saved-projects-list .delete-project-btn {
+  background-color: transparent;
+  color: var(--sys-color-5);
+  border: 1px solid var(--sys-color-5);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.8em;
+  cursor: pointer;
+  margin-left: 10px;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+#saved-projects-list .delete-project-btn:hover {
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
+}
+#saved-projects-list li.selected .delete-project-btn {
+  color: var(--sys-color-1);
+  border-color: var(--sys-color-1);
+}
+#saved-projects-list li.selected .delete-project-btn:hover {
+  background-color: var(--sys-color-1);
+  color: var(--sys-color-3);
+}
+#saved-projects-list li.is-current-workspace .delete-project-btn {
+  color: var(--sys-color-3);
+  border-color: var(--sys-color-3);
+}
+#saved-projects-list li.is-current-workspace .delete-project-btn:hover {
+  background-color: var(--sys-color-3);
+  color: var(--sys-color-1);
+}
+
+#projects-dialog #load-selected-project-btn {
+  background-color: var(--sys-color-4);
+  color: var(--sys-color-1);
+}
+#projects-dialog #load-selected-project-btn:hover {
+  background-color: var(--sys-color-5);
+  color: var(--sys-color-3);
+}
+#projects-dialog #load-selected-project-btn:disabled {
+  background-color: var(--sys-color-2-light);
+  color: var(--sys-color-2-lightest);
+  cursor: not-allowed;
+  border-color: var(--sys-color-2-light);
+}
+#projects-dialog #load-selected-project-btn:disabled:hover {
+  background-color: var(--sys-color-2-light);
+  color: var(--sys-color-2-lightest);
+}
+
+.dialog-link-btn {
+  padding: 8px 15px;
+  text-decoration: none;
+  color: var(--sys-color-2);
+  border: 1px solid var(--sys-color-2);
+  border-radius: 4px;
+  margin-right: auto;
+  font-weight: 500;
+  font-size: inherit;
+  line-height: inherit;
+  display: inline-flex;
+  align-items: center;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+.dialog-link-btn:hover {
+  background-color: var(--sys-color-2);
+  color: var(--sys-color-3);
+  border-color: var(--sys-color-2);
+}
+
+#edit-project-title-dialog {
+  max-width: 400px;
+}
+
 @media (max-width: 768px) {
   header h1 {
     font-size: 1em;
@@ -994,16 +1275,18 @@ footer a:hover {
     gap: 8px;
   }
 
-  /* Removed display: none from .event-actions button to make them visible on mobile */
-  /* .event-actions button {
-    display: none;
-  } */
-
   .header-actions .data-management-controls {
     display: none;
   }
   #mobile-menu-btn {
     display: flex;
+  }
+
+  #project-title-container {
+    padding: 0 5px;
+  }
+  #current-project-title-display {
+    font-size: 1.1em;
   }
 
   .controls-panel {
@@ -1049,13 +1332,13 @@ footer a:hover {
     order: 3;
     display: flex;
     flex-direction: row;
-    gap: 0px; /* Consider adding a small gap e.g. 5px if icons are too close */
+    gap: 0px;
     margin-right: 8px;
     align-self: center;
     flex-shrink: 0;
   }
   .event-actions button {
-    padding: 6px; /* This padding will surround the SVG icon */
+    padding: 6px;
   }
 
   .event-title-time-wrapper {
@@ -1085,18 +1368,24 @@ footer a:hover {
     max-height: 85vh;
     padding: 15px;
   }
-  #event-form label {
+  #event-form label,
+  #edit-project-title-form label {
     font-size: 0.85em;
   }
   #event-form input[type="text"],
   #event-form input[type="time"],
   #event-form input[type="color"],
   #event-form select,
-  #event-form textarea {
+  #event-form textarea,
+  #edit-project-title-form input[type="text"] {
     padding: 7px;
     font-size: 0.85em;
   }
   .dialog-buttons button {
+    padding: 7px 12px;
+    font-size: 0.9em;
+  }
+  .dialog-link-btn {
     padding: 7px 12px;
     font-size: 0.9em;
   }
