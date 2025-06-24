@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - IOIT ACM Event Planner</title>
+    <link rel="stylesheet" href="./index.css" />
+    <link rel="stylesheet" href="./settings.css" />
+    <script>
+      (function () {
+        try {
+          const settings =
+            JSON.parse(localStorage.getItem('eventPlannerSettings')) || {};
+          const theme = settings.theme;
+          if (theme && theme.name === 'custom' && theme.colors) {
+            Object.keys(theme.colors).forEach((key) => {
+              document.documentElement.style.setProperty(
+                key,
+                theme.colors[key]
+              );
+            });
+          } else if (theme && theme.name && theme.name !== 'default') {
+            document.documentElement.setAttribute('data-theme', theme.name);
+          }
+        } catch (e) {
+          console.error('Error applying theme from localStorage', e);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <header>
+      <div class="logo-title">
+        <div class="acm-logo">
+          <img src="./acm.png" alt="ACM Logo" />
+        </div>
+        <h1>
+          <a href="./index.html" style="color: inherit; text-decoration: none"
+            >IOIT ACM Event Planner</a
+          >
+        </h1>
+      </div>
+      <div class="header-actions">
+        <a
+          href="./index.html"
+          id="back-to-planner-btn"
+          class="icon-btn"
+          title="Back to Planner"
+        >
+          ←
+        </a>
+      </div>
+    </header>
+
+    <main class="settings-page">
+      <h1>Application Settings</h1>
+
+      <section class="settings-section">
+        <h2>Color Theme</h2>
+        <p class="setting-description">
+          Choose a predefined theme or create your own. Your selection is saved
+          automatically.
+        </p>
+        <div id="theme-selector"></div>
+        <div id="custom-theme-creator" class="hidden">
+          <h3>Custom Theme Editor</h3>
+          <div id="custom-color-pickers" class="custom-color-pickers"></div>
+          <button id="apply-custom-theme-btn">Apply Custom Theme</button>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h2>General</h2>
+        <div class="setting-item">
+          <label for="snap-duration-input"
+            >Timeline Snap Interval (minutes):</label
+          >
+          <input
+            type="number"
+            id="snap-duration-input"
+            min="1"
+            max="60"
+            step="1"
+          />
+          <p class="setting-description">
+            The interval (e.g., 15 mins) that events snap to when moved or
+            resized on the timeline.
+          </p>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h2>Project Management</h2>
+        <p>
+          You have created a total of
+          <strong id="project-count">0</strong> project(s).
+        </p>
+        <ul id="settings-project-list"></ul>
+        <p id="no-projects-message" class="hidden">No projects found.</p>
+      </section>
+
+      <section class="settings-section">
+        <h2>How to Use</h2>
+        <ul class="usage-list">
+          <li>
+            <strong>Create Events:</strong> Click the '+' button in the header
+            or click and drag directly on an empty area of the timeline.
+          </li>
+          <li>
+            <strong>Edit Events:</strong> Click on an event block on the
+            timeline or the edit icon in the event list below.
+          </li>
+          <li>
+            <strong>Manage Projects:</strong> Use the 'Projects' button to save,
+            load, and manage different event plans.
+          </li>
+          <li>
+            <strong>Save & Load:</strong> Your current project is saved
+            automatically. Use the 'Projects' dialog to switch between saved
+            projects.
+          </li>
+          <li>
+            <strong>Export & Import:</strong> Use the 'Export' button to save
+            your current project as a JSON file. Use 'Import' to load a project
+            from a file, or 'Load from URL' to load from a web link.
+          </li>
+          <li>
+            <strong>Undo & Redo:</strong> Use the undo
+            (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) and redo (<kbd>Ctrl</kbd>+<kbd
+              >Y</kbd
+            >
+            or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>) shortcuts to
+            revert or reapply recent changes to your events and timeline.
+          </li>
+        </ul>
+      </section>
+
+      <section class="settings-section danger-zone">
+        <h2>Danger Zone</h2>
+        <div class="setting-item">
+          <button id="reset-settings-btn" class="danger-btn">
+            Reset All Settings
+          </button>
+          <p class="setting-description">
+            Resets theme and other settings to their default values.
+          </p>
+        </div>
+        <div class="setting-item">
+          <button id="erase-data-btn" class="danger-btn">
+            Erase All Site Data
+          </button>
+          <p class="setting-description">
+            Permanently deletes ALL projects and settings from your browser.
+            This cannot be undone.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>
+        Made with ❤️ by
+        <a
+          href="https://adimail.github.io/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Aditya Godse</a
+        >
+      </span>
+      <span>
+        <a
+          href="https://github.com/IOIT-ACM/planner"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GitHub</a
+        >
+      </span>
+    </footer>
+
+    <dialog id="custom-dialog">
+      <h2 id="custom-dialog-title"></h2>
+      <p id="custom-dialog-message"></p>
+      <div class="dialog-buttons" id="custom-dialog-buttons"></div>
+    </dialog>
+
+    <script src="./js/utils.js"></script>
+    <script src="./js/ui.js"></script>
+    <script src="./js/settings.js"></script>
+  </body>
+</html>

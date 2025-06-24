@@ -80,6 +80,7 @@ function initApp() {
     "cancel-edit-project-title-btn",
   );
 
+  let snapInterval = 15;
   let events = [];
   let currentDay = 1;
   let maxDays = 1;
@@ -115,6 +116,12 @@ function initApp() {
       maxDays: maxDays,
       projectTitle: currentProjectTitle,
     };
+  }
+
+  function loadAppSettings() {
+    const settings =
+      JSON.parse(localStorage.getItem("eventPlannerSettings")) || {};
+    snapInterval = settings.snapDuration || 15;
   }
 
   function applyState(state) {
@@ -376,44 +383,71 @@ function initApp() {
     const totalTimelineWidth = timelineDurationHours * timelineScale;
 
     timelineContainer.style.width = `${totalTimelineWidth}px`;
-    timeRuler.innerHTML = "";
+
+    const existingTicks = new Map(
+      Array.from(timeRuler.querySelectorAll(".time-tick")).map((el) => [
+        el.dataset.tickId,
+        el,
+      ]),
+    );
+    const processedTickIds = new Set();
 
     for (let hour = TIMELINE_START_HOUR; hour <= TIMELINE_END_HOUR; hour++) {
-      const tick = document.createElement("div");
-      tick.classList.add("time-tick");
+      const hourTickId = `h-${hour}`;
+      processedTickIds.add(hourTickId);
+      let tick = existingTicks.get(hourTickId);
+
+      if (!tick) {
+        tick = document.createElement("div");
+        tick.classList.add("time-tick");
+        tick.dataset.tickId = hourTickId;
+        timeRuler.appendChild(tick);
+      }
+
       const tickPosition = (hour - TIMELINE_START_HOUR) * timelineScale;
       tick.style.left = `${tickPosition}px`;
 
-      let showLabelAndMajor = false;
-      if (isMobile) {
-        if (hour % 3 === 0) {
-          showLabelAndMajor = true;
-        }
-      } else {
-        showLabelAndMajor = true;
-      }
+      let showLabelAndMajor = isMobile ? hour % 3 === 0 : true;
 
       if (showLabelAndMajor) {
         tick.classList.add("major");
-        const label = document.createElement("span");
+        let label = tick.querySelector("span");
+        if (!label) {
+          label = document.createElement("span");
+          tick.appendChild(label);
+        }
         label.textContent = formatTimeForDisplay(
           `${String(hour % 24).padStart(2, "0")}:00`,
         );
-        tick.appendChild(label);
+      } else {
+        tick.classList.remove("major");
+        const label = tick.querySelector("span");
+        if (label) label.remove();
       }
-
-      timeRuler.appendChild(tick);
 
       if (hour < TIMELINE_END_HOUR) {
         for (let j = 1; j <= 3; j++) {
-          const quarterTick = document.createElement("div");
-          quarterTick.classList.add("time-tick");
+          const quarterTickId = `q-${hour}-${j}`;
+          processedTickIds.add(quarterTickId);
+          let quarterTick = existingTicks.get(quarterTickId);
+
+          if (!quarterTick) {
+            quarterTick = document.createElement("div");
+            quarterTick.classList.add("time-tick");
+            quarterTick.dataset.tickId = quarterTickId;
+            timeRuler.appendChild(quarterTick);
+          }
           const quarterPosition = tickPosition + (timelineScale / 4) * j;
           quarterTick.style.left = `${quarterPosition}px`;
-          timeRuler.appendChild(quarterTick);
         }
       }
     }
+
+    existingTicks.forEach((tick, id) => {
+      if (id && !processedTickIds.has(id)) {
+        tick.remove();
+      }
+    });
   }
 
   function renderTimelineEvents(isAnimated = false) {
@@ -825,13 +859,13 @@ function initApp() {
 
   zoomInBtn.addEventListener("click", () => {
     timelineScale = Math.min(300, timelineScale + 20);
-    renderTimeline();
+    renderTimeline(true);
   });
 
   zoomOutBtn.addEventListener("click", () => {
     const minScale = getMinTimelineScale();
     timelineScale = Math.max(minScale, timelineScale - 20);
-    renderTimeline();
+    renderTimeline(true);
   });
 
   function FitTimelineOnPage() {
@@ -840,7 +874,7 @@ function initApp() {
 
     if (dayEvents.length === 0) {
       timelineScale = getMinTimelineScale();
-      renderTimeline();
+      renderTimeline(true);
       timelineContainerWrapper.scrollLeft = 0;
     } else {
       let minEventStartMinutes = TIMELINE_END_HOUR * 60;
@@ -896,7 +930,7 @@ function initApp() {
 
       if (finalViewDurationMinutes <= 0) {
         timelineScale = getMinTimelineScale();
-        renderTimeline();
+        renderTimeline(true);
         timelineContainerWrapper.scrollLeft = 0;
         return;
       }
@@ -905,7 +939,7 @@ function initApp() {
       newScale = Math.max(getMinTimelineScale(), newScale);
       newScale = Math.min(300, newScale);
       timelineScale = newScale;
-      renderTimeline();
+      renderTimeline(true);
 
       const scrollTargetPx =
         (viewStartMinutes - TIMELINE_START_HOUR * 60) * (timelineScale / 60);
@@ -1095,8 +1129,8 @@ function initApp() {
             TIMELINE_START_HOUR * 60,
         );
 
-        startMinutes = snapToNearestQuarterHour(startMinutes);
-        endMinutes = snapToNearestQuarterHour(endMinutes);
+        startMinutes = snapToNearestQuarterHour(startMinutes, snapInterval);
+        endMinutes = snapToNearestQuarterHour(endMinutes, snapInterval);
 
         const MIN_CREATION_DURATION_MINUTES = 15;
         if (endMinutes <= startMinutes) {
@@ -1169,14 +1203,20 @@ function initApp() {
           ) - parseTimeToMinutes(draggingEvent.startTime);
         let newStartMinutes =
           Math.round(newLeftPx / pixelsPerMinute) + TIMELINE_START_HOUR * 60;
-        newStartMinutes = snapToNearestQuarterHour(newStartMinutes);
+        newStartMinutes = snapToNearestQuarterHour(
+          newStartMinutes,
+          snapInterval,
+        );
         newStartMinutes = Math.max(TIMELINE_START_HOUR * 60, newStartMinutes);
         let newEndMinutes = newStartMinutes + eventDurationMinutes;
 
         if (newEndMinutes > TIMELINE_END_HOUR * 60) {
           newEndMinutes = TIMELINE_END_HOUR * 60;
           newStartMinutes = newEndMinutes - eventDurationMinutes;
-          newStartMinutes = snapToNearestQuarterHour(newStartMinutes);
+          newStartMinutes = snapToNearestQuarterHour(
+            newStartMinutes,
+            snapInterval,
+          );
           newStartMinutes = Math.max(TIMELINE_START_HOUR * 60, newStartMinutes);
         }
 
@@ -1215,11 +1255,17 @@ function initApp() {
         const MIN_RESIZE_DURATION_MINUTES = 15;
 
         if (resizeHandleType === "left") {
-          finalStartMinutes = snapToNearestQuarterHour(tentativeStartMinutes);
+          finalStartMinutes = snapToNearestQuarterHour(
+            tentativeStartMinutes,
+            snapInterval,
+          );
           finalEndMinutes = originalEventEndMinutes;
         } else {
           finalStartMinutes = originalEventStartMinutes;
-          finalEndMinutes = snapToNearestQuarterHour(tentativeEndMinutes);
+          finalEndMinutes = snapToNearestQuarterHour(
+            tentativeEndMinutes,
+            snapInterval,
+          );
         }
 
         finalStartMinutes = Math.max(
@@ -1231,10 +1277,16 @@ function initApp() {
         if (finalEndMinutes - finalStartMinutes < MIN_RESIZE_DURATION_MINUTES) {
           if (resizeHandleType === "right") {
             finalEndMinutes = finalStartMinutes + MIN_RESIZE_DURATION_MINUTES;
-            finalEndMinutes = snapToNearestQuarterHour(finalEndMinutes);
+            finalEndMinutes = snapToNearestQuarterHour(
+              finalEndMinutes,
+              snapInterval,
+            );
           } else {
             finalStartMinutes = finalEndMinutes - MIN_RESIZE_DURATION_MINUTES;
-            finalStartMinutes = snapToNearestQuarterHour(finalStartMinutes);
+            finalStartMinutes = snapToNearestQuarterHour(
+              finalStartMinutes,
+              snapInterval,
+            );
           }
           finalStartMinutes = Math.max(
             TIMELINE_START_HOUR * 60,
@@ -1248,11 +1300,13 @@ function initApp() {
             finalStartMinutes = originalEventStartMinutes;
             finalEndMinutes = snapToNearestQuarterHour(
               finalStartMinutes + MIN_RESIZE_DURATION_MINUTES,
+              snapInterval,
             );
           } else {
             finalEndMinutes = originalEventEndMinutes;
             finalStartMinutes = snapToNearestQuarterHour(
               finalEndMinutes - MIN_RESIZE_DURATION_MINUTES,
+              snapInterval,
             );
           }
           finalStartMinutes = Math.max(
@@ -1692,6 +1746,7 @@ function initApp() {
     renderEventList();
   }
 
+  loadAppSettings();
   loadSavedProjects();
 
   const storedCurrentDataText = localStorage.getItem("eventPlannerData");

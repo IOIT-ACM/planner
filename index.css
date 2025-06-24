@@ -9,7 +9,7 @@
   --sys-color-4-rgba: 221, 161, 94;
 
   --sys-color-2-light: #939974;
-  --sys-color-2-lightest: #d5d8c9;
+  --sys-color-2-lighter: #d5d8c9;
   --sys-color-5-dark: #96561d;
 
   --shadow-sm: 0 1px 3px rgba(var(--sys-color-1-rgba), 0.08);
@@ -79,6 +79,7 @@ header h1 {
 .icon-btn {
   background-color: var(--sys-color-4);
   border: 1px solid var(--sys-color-5);
+  text-decoration: none;
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -264,7 +265,7 @@ main {
 #timeline-container-wrapper {
   width: 100%;
   overflow-x: auto;
-  background-color: var(--sys-color-2-lightest);
+  background-color: var(--sys-color-2-lighter);
   border: 1px solid var(--sys-color-2);
   border-radius: 6px;
   margin-bottom: 20px;
@@ -461,7 +462,7 @@ main {
 
 .event-list-item {
   padding: 15px;
-  border-bottom: 1px solid var(--sys-color-2-lightest);
+  border-bottom: 1px solid var(--sys-color-2-lighter);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -473,7 +474,7 @@ main {
   border-bottom: none;
 }
 .event-list-item:hover {
-  background-color: var(--sys-color-2-lightest);
+  background-color: var(--sys-color-2-lighter);
 }
 
 .event-color-dot {
@@ -561,7 +562,7 @@ main {
 
 .event-details {
   width: 100%;
-  background-color: var(--sys-color-2-lightest);
+  background-color: var(--sys-color-2-lighter);
   padding: 10px;
   margin-top: 8px;
   border-radius: 4px;
@@ -695,7 +696,7 @@ dialog::backdrop {
 .event-day-radio-group .radio-option {
   display: flex;
   align-items: center;
-  background-color: var(--sys-color-2-lightest);
+  background-color: var(--sys-color-2-lighter);
   padding: 6px 10px;
   border-radius: 4px;
   border: 1px solid var(--sys-color-2);
@@ -730,7 +731,7 @@ dialog::backdrop {
   margin-bottom: 0;
 }
 
-.event-day-radio-group input[type="radio"]:checked + label {
+.event-day-radio-group input[type="radio"]:checked label {
   font-weight: bold;
   color: var(--sys-color-5);
 }
@@ -959,7 +960,7 @@ dialog::backdrop {
 }
 
 .loading-spinner {
-  border: 4px solid var(--sys-color-2-lightest);
+  border: 4px solid var(--sys-color-2-lighter);
   border-top: 4px solid var(--sys-color-4);
   border-radius: 50%;
   width: 40px;
@@ -1079,14 +1080,14 @@ footer a:hover {
   margin: 0 0 15px 0;
   max-height: 200px;
   overflow-y: auto;
-  border: 1px solid var(--sys-color-2-lightest);
+  border: 1px solid var(--sys-color-2-lighter);
   border-radius: 4px;
   background-color: var(--sys-color-3);
 }
 
 #saved-projects-list li {
   padding: 10px;
-  border-bottom: 1px solid var(--sys-color-2-lightest);
+  border-bottom: 1px solid var(--sys-color-2-lighter);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -1097,7 +1098,7 @@ footer a:hover {
   border-bottom: none;
 }
 #saved-projects-list li:hover {
-  background-color: var(--sys-color-2-lightest);
+  background-color: var(--sys-color-2-lighter);
 }
 #saved-projects-list li.selected {
   background-color: var(--sys-color-4);
@@ -1127,18 +1128,15 @@ footer a:hover {
   max-width: 400px;
 }
 #new-project-prompt-dialog h2 {
-  /* Matches #custom-dialog h2 */
   font-size: 1.2em;
   color: var(--sys-color-1);
   margin-top: 0;
   margin-bottom: 15px;
 }
 #new-project-prompt-form div {
-  /* Matches #event-form div */
   margin-bottom: 12px;
 }
 #new-project-prompt-form label {
-  /* Matches #event-form label */
   display: block;
   margin-bottom: 4px;
   font-weight: 500;
@@ -1146,7 +1144,6 @@ footer a:hover {
   color: var(--sys-color-1);
 }
 #new-project-prompt-form input[type="text"] {
-  /* Matches #event-form input[type="text"] */
   width: calc(100% - 12px);
   padding: 8px;
   border: 1px solid var(--sys-color-5);
@@ -1161,13 +1158,13 @@ footer a:hover {
     background-color 0.2s ease,
     color 0.2s ease;
 }
+
 #new-project-prompt-form input[type="text"]:focus {
-  /* Matches focus style */
   border-color: var(--sys-color-4);
   outline: none;
 }
+
 #confirm-new-project-prompt-btn {
-  /* Matches #save-event-btn */
   background-color: var(--sys-color-4);
   color: var(--sys-color-1);
 }
@@ -1175,8 +1172,8 @@ footer a:hover {
   background-color: var(--sys-color-5);
   color: var(--sys-color-3);
 }
+
 #cancel-new-project-prompt-btn {
-  /* Matches #cancel-event-btn */
   background-color: var(--sys-color-2);
   color: var(--sys-color-3);
 }
@@ -1228,13 +1225,13 @@ footer a:hover {
 }
 #projects-dialog #load-selected-project-btn:disabled {
   background-color: var(--sys-color-2-light);
-  color: var(--sys-color-2-lightest);
+  color: var(--sys-color-2-lighter);
   cursor: not-allowed;
   border-color: var(--sys-color-2-light);
 }
 #projects-dialog #load-selected-project-btn:disabled:hover {
   background-color: var(--sys-color-2-light);
-  color: var(--sys-color-2-lightest);
+  color: var(--sys-color-2-lighter);
 }
 
 .dialog-link-btn {
@@ -1265,9 +1262,32 @@ footer a:hover {
 }
 
 @media (max-width: 768px) {
-  header h1 {
-    font-size: 1em;
+  main {
+    padding: 10px;
   }
+
+  header {
+    padding: 10px;
+  }
+
+  header h1 {
+    font-size: 0.9em;
+  }
+
+  .day-tab {
+    font-size: 0.7em;
+    padding: 0 6px;
+  }
+
+  .zoom-controls-mobile {
+    font-size: 0.9em;
+  }
+
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+  }
+
   .acm-logo img {
     width: 25px;
     height: 25px;
@@ -1394,4 +1414,49 @@ footer a:hover {
   #timeline-tooltip {
     display: none !important;
   }
+}
+
+html[data-theme="ocean"] {
+  --sys-color-1: #003049;
+  --sys-color-2: #00507a;
+  --sys-color-3: #f7f7f7;
+  --sys-color-4: #e6a61c;
+  --sys-color-5: #6d5525;
+
+  --sys-color-1-rgba: 0, 48, 73;
+  --sys-color-4-rgba: 214, 40, 40;
+
+  --sys-color-2-light: #0073b1;
+  --sys-color-2-lighter: #99c5de;
+  --sys-color-5-dark: #e3ac38;
+}
+
+html[data-theme="forest"] {
+  --sys-color-1: #1a4314;
+  --sys-color-2: #2e6d23;
+  --sys-color-3: #f4f3ee;
+  --sys-color-4: #d1a000;
+  --sys-color-5: #789018;
+
+  --sys-color-1-rgba: 26, 67, 20;
+  --sys-color-4-rgba: 178, 137, 0;
+
+  --sys-color-2-light: #4e9442;
+  --sys-color-2-lighter: #a7cba1;
+  --sys-color-5-dark: #5f7113;
+}
+
+html[data-theme="dusk"] {
+  --sys-color-1: #23243a;
+  --sys-color-2: #3a3c5a;
+  --sys-color-3: #f5f3fa;
+  --sys-color-4: #a678d3;
+  --sys-color-5: #f7b267;
+
+  --sys-color-1-rgba: 35, 36, 58;
+  --sys-color-4-rgba: 166, 120, 211;
+
+  --sys-color-2-light: #5a5c7a;
+  --sys-color-2-lighter: #d6d3e7;
+  --sys-color-5-dark: #c97a3d;
 }

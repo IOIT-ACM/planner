@@ -43,6 +43,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IOIT ACM Event Planner</title>
     <link rel="stylesheet" href="./index.css" />
+    <script>
+      (function () {
+        try {
+          const settings =
+            JSON.parse(localStorage.getItem("eventPlannerSettings")) || {};
+          const theme = settings.theme;
+          if (theme && theme.name === "custom" && theme.colors) {
+            Object.keys(theme.colors).forEach((key) => {
+              document.documentElement.style.setProperty(
+                key,
+                theme.colors[key],
+              );
+            });
+          } else if (theme && theme.name && theme.name !== "default") {
+            document.documentElement.setAttribute("data-theme", theme.name);
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <header>
@@ -70,6 +89,18 @@
         <button id="add-event-btn" class="icon-btn" title="Add New Event">
           +
         </button>
+        <a
+          href="./settings.html"
+          id="settings-btn"
+          class="icon-btn"
+          title="Settings"
+        >
+          <img
+            src="./icons/settings.svg"
+            alt="Settings"
+            style="width: 18px; height: 18px"
+          />
+        </a>
         <button id="mobile-menu-btn" class="icon-btn" title="Menu">☰</button>
       </div>
     </header>
