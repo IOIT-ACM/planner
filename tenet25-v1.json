@@ -1,4 +1,5 @@
 {
+  "projectTitle": "TENET'25",
   "events": [
     {
       "id": "event-2",
@@ -49,12 +50,13 @@
     },
     {
       "id": "event-7",
-      "title": "MUN Breakfast and Reporting (Day 2)",
+      "title": "MUN Breakfast and Reporting",
       "day": 2,
       "startTime": "08:00",
       "endTime": "09:00",
       "color": "#bdc3c7",
-      "location": "Admin Office"
+      "location": "Admin Office",
+      "notes": ""
     },
     {
       "id": "event-9",
@@ -68,52 +70,57 @@
     },
     {
       "id": "event-10",
-      "title": "MUN Committee Session 1 (Day 2)",
+      "title": "MUN Committee Session 1",
       "day": 2,
       "startTime": "11:00",
       "endTime": "14:00",
       "color": "#f1c40f",
-      "location": "AISSMS IOIT"
+      "location": "AISSMS IOIT",
+      "notes": ""
     },
     {
       "id": "event-11",
-      "title": "MUN Lunch (Day 2)",
+      "title": "MUN Lunch",
       "day": 2,
       "startTime": "14:00",
       "endTime": "15:00",
       "color": "#bdc3c7",
-      "location": "3rd Floor Terrace"
+      "location": "3rd Floor Terrace",
+      "notes": ""
     },
     {
       "id": "event-12",
-      "title": "MUN High tea (Day 2)",
+      "title": "MUN High tea",
       "day": 2,
       "startTime": "17:00",
       "endTime": "17:30",
       "color": "#bdc3c7",
-      "location": "In hand"
+      "location": "In hand",
+      "notes": ""
     },
     {
       "id": "event-13",
-      "title": "MUN Breakfast and Reporting (Day 3)",
+      "title": "MUN Breakfast and Reporting",
       "day": 3,
       "startTime": "09:00",
       "endTime": "10:00",
       "color": "#bdc3c7",
-      "location": "Admin Office, 3rd Floor"
+      "location": "Admin Office, 3rd Floor",
+      "notes": ""
     },
     {
       "id": "event-14",
-      "title": "MUN Lunch (Day 3)",
+      "title": "MUN Lunch",
       "day": 3,
       "startTime": "13:00",
       "endTime": "14:00",
       "color": "#bdc3c7",
-      "location": "3rd Floor Terrace"
+      "location": "3rd Floor Terrace",
+      "notes": ""
     },
     {
       "id": "event-15",
-      "title": "MUN Committee Session 2 (Day 3)",
+      "title": "MUN Committee Session 1",
       "day": 3,
       "startTime": "10:00",
       "endTime": "13:00",
@@ -192,7 +199,7 @@
     },
     {
       "id": "1750575812631",
-      "title": "MUN Committee Session 1 (Day 2)",
+      "title": "MUN Committee Session 2",
       "day": 2,
       "startTime": "15:00",
       "endTime": "17:00",
@@ -202,7 +209,7 @@
     },
     {
       "id": "1750575846347",
-      "title": "MUN Committee Session 1 (Day 2)",
+      "title": "MUN Committee Session 2",
       "day": 3,
       "startTime": "14:00",
       "endTime": "16:00",
@@ -242,7 +249,7 @@
     },
     {
       "id": "1750583740390",
-      "title": "Break (Copy)",
+      "title": "Break",
       "day": 3,
       "startTime": "13:15",
       "endTime": "14:00",
