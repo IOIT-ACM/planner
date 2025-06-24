@@ -109,6 +109,28 @@ function initApp() {
   const PROJECTS_STORAGE_KEY = "eventPlannerProjects";
   let dialogSelectedProjectId = null;
 
+  function getCurrentState() {
+    return {
+      events: JSON.parse(JSON.stringify(events)),
+      maxDays: maxDays,
+      projectTitle: currentProjectTitle,
+    };
+  }
+
+  function applyState(state) {
+    if (!state) return;
+    events = state.events;
+    maxDays = state.maxDays;
+    currentProjectTitle = state.projectTitle;
+
+    saveCurrentProjectState();
+
+    renderProjectTitleDisplay();
+    updateDayRadioOptions();
+    renderAll();
+    FitTimelineOnPage();
+  }
+
   function makeTitleUnique(title, baseTitle = "Project") {
     let newTitle = title.trim() || baseTitle;
     let counter = 1;
@@ -200,6 +222,8 @@ function initApp() {
       return;
     }
 
+    historyManager.recordState(currentProjectId, getCurrentState());
+
     const existingProject = currentProjectId
       ? savedProjects.find((p) => p.id === currentProjectId)
       : null;
@@ -271,6 +295,7 @@ function initApp() {
     addDayButton.textContent = "+";
     addDayButton.title = "Add New Day";
     addDayButton.addEventListener("click", () => {
+      historyManager.recordState(currentProjectId, getCurrentState());
       maxDays++;
       updateDayRadioOptions();
       saveCurrentProjectState();
@@ -462,6 +487,7 @@ function initApp() {
         colorInput.classList.add("event-color-dot");
         colorInput.value = event.color;
         colorInput.addEventListener("input", (e) => {
+          historyManager.recordState(currentProjectId, getCurrentState());
           const targetEvent = events.find((ev) => ev.id === event.id);
           if (targetEvent) {
             targetEvent.color = e.target.value;
@@ -501,6 +527,7 @@ function initApp() {
             `Are you sure you want to delete the event "<strong>${event.title}</strong>"?`,
             "Delete Event",
             () => {
+              historyManager.recordState(currentProjectId, getCurrentState());
               events = events.filter((ev) => ev.id !== event.id);
               saveCurrentProjectState();
               renderAll();
@@ -628,6 +655,8 @@ function initApp() {
       return;
     }
 
+    historyManager.recordState(currentProjectId, getCurrentState());
+
     const eventData = {
       id: id || Date.now().toString(),
       title: eventTitleInput.value,
@@ -656,6 +685,7 @@ function initApp() {
         "Are you sure you want to delete this event?",
         "Delete Event",
         () => {
+          historyManager.recordState(currentProjectId, getCurrentState());
           events = events.filter((event) => event.id !== id);
           saveCurrentProjectState();
           renderAll();
@@ -693,6 +723,8 @@ function initApp() {
       );
       return;
     }
+
+    historyManager.recordState(currentProjectId, getCurrentState());
 
     const newEvent = {
       id: Date.now().toString(),
@@ -1049,6 +1081,8 @@ function initApp() {
           return;
         }
 
+        historyManager.recordState(currentProjectId, getCurrentState());
+
         const pixelsPerMinute = timelineScale / 60;
         const newLeftPx = parseFloat(eventBlock.style.left);
         const eventDurationMinutes =
@@ -1083,6 +1117,7 @@ function initApp() {
         `.event-block[data-event-id="${resizingEvent.id}"]`,
       );
       if (eventBlock) {
+        historyManager.recordState(currentProjectId, getCurrentState());
         const pixelsPerMinute = timelineScale / 60;
         const newStartPx = parseFloat(eventBlock.style.left);
         const newWidthPx = parseFloat(eventBlock.style.width);
@@ -1288,6 +1323,7 @@ function initApp() {
         `Do you really want to delete Day ${currentDay}? This action cannot be undone.`,
         "Delete Day",
         () => {
+          historyManager.recordState(currentProjectId, getCurrentState());
           const dayToDelete = currentDay;
 
           const eventsToKeep = [];
@@ -1320,6 +1356,7 @@ function initApp() {
         `Do you really want to delete all events for Day ${currentDay}? This action cannot be undone.`,
         "Clear Day Events",
         () => {
+          historyManager.recordState(currentProjectId, getCurrentState());
           events = events.filter((event) => event.day !== currentDay);
           saveCurrentProjectState();
           renderAll();
@@ -1336,6 +1373,7 @@ function initApp() {
       `Are you sure you want to clear all events for "<strong>${projectToClearName}</strong>"? The project title will be kept, but all its scheduled events will be removed. This action cannot be undone.`,
       `Clear Events for ${projectToClearName}`,
       () => {
+        historyManager.recordState(currentProjectId, getCurrentState());
         events = [];
         maxDays = 1;
 
@@ -1382,6 +1420,8 @@ function initApp() {
           return;
         }
         const uniqueNewTitle = makeTitleUnique(newTitle);
+
+        historyManager.recordState(currentProjectId, getCurrentState());
 
         events = [];
         maxDays = 1;
@@ -1513,6 +1553,7 @@ function initApp() {
   }
 
   function deleteSavedProject(projectIdToDelete) {
+    historyManager.deleteHistory(projectIdToDelete);
     savedProjects = savedProjects.filter(
       (proj) => proj.id !== projectIdToDelete,
     );
@@ -1654,4 +1695,51 @@ function initApp() {
   renderProjectTitleDisplay();
   renderAll();
   FitTimelineOnPage();
+
+  function handleUndo() {
+    if (!historyManager.canUndo(currentProjectId)) return;
+    const previousState = historyManager.undo(
+      currentProjectId,
+      getCurrentState(),
+    );
+    if (previousState) {
+      applyState(previousState);
+    }
+  }
+
+  function handleRedo() {
+    if (!historyManager.canRedo(currentProjectId)) return;
+    const nextState = historyManager.redo(currentProjectId, getCurrentState());
+    if (nextState) {
+      applyState(nextState);
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    const activeEl = document.activeElement;
+    if (
+      activeEl &&
+      (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA")
+    ) {
+      return;
+    }
+
+    if (document.querySelector("dialog[open]")) {
+      return;
+    }
+
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+      } else if (e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        handleRedo();
+      }
+    }
+  });
 }
