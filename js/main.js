@@ -119,6 +119,9 @@ function initApp() {
 
   function applyState(state) {
     if (!state) return;
+
+    const oldMaxDays = maxDays;
+
     events = state.events;
     maxDays = state.maxDays;
     currentProjectTitle = state.projectTitle;
@@ -127,7 +130,14 @@ function initApp() {
 
     renderProjectTitleDisplay();
     updateDayRadioOptions();
-    renderAll();
+
+    if (oldMaxDays !== maxDays) {
+      renderDayTabs();
+    }
+
+    renderTimeline(true);
+    renderEventList();
+
     FitTimelineOnPage();
   }
 
@@ -311,16 +321,62 @@ function initApp() {
     return Math.max(10, wrapperWidth / timelineDurationHours);
   }
 
-  function renderTimeline() {
-    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  function createEventBlockElement(eventData, layout) {
+    const eventBlock = document.createElement("div");
+    eventBlock.classList.add("event-block");
+    eventBlock.dataset.eventId = eventData.id;
 
-    const pixelsPerMinute = timelineScale / 60;
+    eventBlock.style.left = layout.left;
+    eventBlock.style.width = layout.width;
+    eventBlock.style.top = layout.top;
+    eventBlock.style.height = `${EVENT_BLOCK_HEIGHT}px`;
+    eventBlock.style.backgroundColor = layout.backgroundColor;
+    eventBlock.style.borderColor = layout.borderColor;
+
+    const titleSpan = document.createElement("span");
+    titleSpan.classList.add("event-block-title");
+    titleSpan.textContent = layout.title;
+    eventBlock.appendChild(titleSpan);
+
+    const leftHandle = document.createElement("div");
+    leftHandle.classList.add("resize-handle", "left");
+    eventBlock.appendChild(leftHandle);
+
+    const rightHandle = document.createElement("div");
+    rightHandle.classList.add("resize-handle", "right");
+    eventBlock.appendChild(rightHandle);
+
+    eventBlock.addEventListener("mouseenter", (e) => {
+      const currentEventData = events.find(
+        (ev) => ev.id === eventBlock.dataset.eventId,
+      );
+      if (currentEventData) {
+        timelineTooltip.innerHTML = `<strong>${
+          currentEventData.title
+        }</strong><br>${formatTimeForDisplay(
+          currentEventData.startTime,
+        )} - ${formatTimeForDisplay(currentEventData.endTime)}`;
+        timelineTooltip.classList.remove("hidden");
+        updateTooltipPosition(e, timelineTooltip);
+      }
+    });
+    eventBlock.addEventListener("mousemove", (e) => {
+      updateTooltipPosition(e, timelineTooltip);
+    });
+    eventBlock.addEventListener("mouseleave", () => {
+      timelineTooltip.classList.add("hidden");
+    });
+
+    return eventBlock;
+  }
+
+  function renderTimeRuler() {
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
     const timelineDurationHours = TIMELINE_END_HOUR - TIMELINE_START_HOUR;
     const totalTimelineWidth = timelineDurationHours * timelineScale;
 
     timelineContainer.style.width = `${totalTimelineWidth}px`;
     timeRuler.innerHTML = "";
-    timelineEventsContainer.innerHTML = "";
 
     for (let hour = TIMELINE_START_HOUR; hour <= TIMELINE_END_HOUR; hour++) {
       const tick = document.createElement("div");
@@ -358,11 +414,11 @@ function initApp() {
         }
       }
     }
+  }
 
+  function renderTimelineEvents(isAnimated = false) {
+    const pixelsPerMinute = timelineScale / 60;
     const dayEvents = events.filter((event) => event.day === currentDay);
-    const eventHeight = EVENT_BLOCK_HEIGHT;
-    const eventMargin = EVENT_BLOCK_MARGIN;
-    let maxBottom = 100;
 
     dayEvents.sort(
       (a, b) =>
@@ -370,6 +426,7 @@ function initApp() {
     );
 
     const lanes = [];
+    const eventLayouts = new Map();
 
     dayEvents.forEach((eventData) => {
       const startMinutes = parseTimeToMinutes(eventData.startTime);
@@ -385,75 +442,98 @@ function initApp() {
       let eventWidth = (endMinutes - startMinutes) * pixelsPerMinute;
       if (eventWidth < MIN_EVENT_WIDTH_PX) eventWidth = MIN_EVENT_WIDTH_PX;
 
-      const eventBlock = document.createElement("div");
-      eventBlock.classList.add("event-block");
-      eventBlock.dataset.eventId = eventData.id;
-      eventBlock.style.backgroundColor = eventData.color;
-      eventBlock.style.borderColor = darkenColor(eventData.color, 20);
-      eventBlock.style.left = `${eventStartOffset}px`;
-      eventBlock.style.width = `${eventWidth}px`;
-      eventBlock.style.height = `${eventHeight}px`;
-
+      let eventTop = 0;
       let placed = false;
       for (let i = 0; i < lanes.length; i++) {
         if (lanes[i] <= startMinutes) {
-          eventBlock.style.top = `${i * (eventHeight + eventMargin)}px`;
+          eventTop = i * (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN);
           lanes[i] = endMinutes;
           placed = true;
           break;
         }
       }
       if (!placed) {
-        eventBlock.style.top = `${
-          lanes.length * (eventHeight + eventMargin)
-        }px`;
+        eventTop = lanes.length * (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN);
         lanes.push(endMinutes);
       }
 
-      const titleSpan = document.createElement("span");
-      titleSpan.classList.add("event-block-title");
-      titleSpan.textContent = eventData.title;
-      eventBlock.appendChild(titleSpan);
-
-      const leftHandle = document.createElement("div");
-      leftHandle.classList.add("resize-handle", "left");
-      eventBlock.appendChild(leftHandle);
-
-      const rightHandle = document.createElement("div");
-      rightHandle.classList.add("resize-handle", "right");
-      eventBlock.appendChild(rightHandle);
-
-      eventBlock.addEventListener("mouseenter", (e) => {
-        const currentEventData = events.find(
-          (ev) => ev.id === eventBlock.dataset.eventId,
-        );
-        if (currentEventData) {
-          timelineTooltip.innerHTML = `<strong>${
-            currentEventData.title
-          }</strong><br>${formatTimeForDisplay(
-            currentEventData.startTime,
-          )} - ${formatTimeForDisplay(currentEventData.endTime)}`;
-          timelineTooltip.classList.remove("hidden");
-          updateTooltipPosition(e, timelineTooltip);
-        }
+      eventLayouts.set(eventData.id, {
+        left: `${eventStartOffset}px`,
+        width: `${eventWidth}px`,
+        top: `${eventTop}px`,
+        backgroundColor: eventData.color,
+        borderColor: darkenColor(eventData.color, 20),
+        title: eventData.title,
       });
-      eventBlock.addEventListener("mousemove", (e) => {
-        updateTooltipPosition(e, timelineTooltip);
-      });
-      eventBlock.addEventListener("mouseleave", () => {
-        timelineTooltip.classList.add("hidden");
-      });
-
-      timelineEventsContainer.appendChild(eventBlock);
-      maxBottom = Math.max(
-        maxBottom,
-        parseFloat(eventBlock.style.top) + eventHeight + eventMargin,
-      );
     });
+
+    const maxBottom =
+      lanes.length * (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN) +
+      EVENT_BLOCK_MARGIN;
     timelineEventsContainer.style.height = `${Math.max(
       maxBottom,
+      100,
       EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN,
     )}px`;
+
+    if (!isAnimated) {
+      timelineEventsContainer.innerHTML = "";
+      dayEvents.forEach((eventData) => {
+        const layout = eventLayouts.get(eventData.id);
+        if (!layout) return;
+        const eventBlock = createEventBlockElement(eventData, layout);
+        timelineEventsContainer.appendChild(eventBlock);
+      });
+      return;
+    }
+
+    const existingBlocks = new Map(
+      Array.from(timelineEventsContainer.querySelectorAll(".event-block")).map(
+        (el) => [el.dataset.eventId, el],
+      ),
+    );
+    const processedIds = new Set();
+
+    dayEvents.forEach((eventData) => {
+      const layout = eventLayouts.get(eventData.id);
+      if (!layout) return;
+      processedIds.add(eventData.id);
+
+      if (existingBlocks.has(eventData.id)) {
+        const block = existingBlocks.get(eventData.id);
+        block.style.left = layout.left;
+        block.style.width = layout.width;
+        block.style.top = layout.top;
+        block.style.backgroundColor = layout.backgroundColor;
+        block.style.borderColor = layout.borderColor;
+        block.querySelector(".event-block-title").textContent = layout.title;
+      } else {
+        const eventBlock = createEventBlockElement(eventData, layout);
+        eventBlock.style.opacity = "0";
+        timelineEventsContainer.appendChild(eventBlock);
+        requestAnimationFrame(() => {
+          eventBlock.style.opacity = "1";
+        });
+      }
+    });
+
+    existingBlocks.forEach((block, id) => {
+      if (!processedIds.has(id)) {
+        block.style.opacity = "0";
+        const removeBlock = () => {
+          if (block.parentElement) {
+            block.remove();
+          }
+        };
+        block.addEventListener("transitionend", removeBlock, { once: true });
+        setTimeout(removeBlock, 500);
+      }
+    });
+  }
+
+  function renderTimeline(isAnimated = false) {
+    renderTimeRuler();
+    renderTimelineEvents(isAnimated);
   }
 
   function renderEventList() {
@@ -492,14 +572,7 @@ function initApp() {
           if (targetEvent) {
             targetEvent.color = e.target.value;
             saveCurrentProjectState();
-            renderTimeline();
-            const timelineBlock = timelineEventsContainer.querySelector(
-              `.event-block[data-event-id="${event.id}"]`,
-            );
-            if (timelineBlock) {
-              timelineBlock.style.backgroundColor = e.target.value;
-              timelineBlock.style.borderColor = darkenColor(e.target.value, 20);
-            }
+            renderTimeline(true);
           }
         });
         li.appendChild(colorInput);
@@ -530,7 +603,8 @@ function initApp() {
               historyManager.recordState(currentProjectId, getCurrentState());
               events = events.filter((ev) => ev.id !== event.id);
               saveCurrentProjectState();
-              renderAll();
+              renderTimeline(true);
+              renderEventList();
             },
           );
         });
@@ -674,7 +748,8 @@ function initApp() {
       events.push(eventData);
     }
     saveCurrentProjectState();
-    renderAll();
+    renderTimeline(true);
+    renderEventList();
     eventDialog.close();
   });
 
@@ -688,7 +763,8 @@ function initApp() {
           historyManager.recordState(currentProjectId, getCurrentState());
           events = events.filter((event) => event.id !== id);
           saveCurrentProjectState();
-          renderAll();
+          renderTimeline(true);
+          renderEventList();
           eventDialog.close();
         },
       );
@@ -739,7 +815,8 @@ function initApp() {
 
     events.push(newEvent);
     saveCurrentProjectState();
-    renderAll();
+    renderTimeline(true);
+    renderEventList();
     eventDialog.close();
   });
 
@@ -1077,7 +1154,7 @@ function initApp() {
           draggingEvent = null;
           mouseDownPos = null;
           document.body.style.cursor = "default";
-          renderAll();
+          renderTimeline();
           return;
         }
 
@@ -1110,7 +1187,8 @@ function initApp() {
           draggingEvent.endTime = formatMinutesToTime(newEndMinutes);
         }
         saveCurrentProjectState();
-        renderAll();
+        renderTimeline(true);
+        renderEventList();
       }
     } else if (resizingEvent) {
       const eventBlock = timelineEventsContainer.querySelector(
@@ -1197,7 +1275,8 @@ function initApp() {
           resizingEvent.endTime = formatMinutesToTime(finalEndMinutes);
         }
         saveCurrentProjectState();
-        renderAll();
+        renderTimeline(true);
+        renderEventList();
       }
     }
 
@@ -1347,7 +1426,7 @@ function initApp() {
           currentDay = Math.max(1, currentDay);
           saveCurrentProjectState();
           updateDayRadioOptions();
-          renderAll();
+          renderAll(true);
           FitTimelineOnPage();
         },
       );
@@ -1359,7 +1438,7 @@ function initApp() {
           historyManager.recordState(currentProjectId, getCurrentState());
           events = events.filter((event) => event.day !== currentDay);
           saveCurrentProjectState();
-          renderAll();
+          renderAll(true);
           FitTimelineOnPage();
         },
       );
@@ -1380,7 +1459,7 @@ function initApp() {
         saveCurrentProjectState();
 
         updateDayRadioOptions();
-        renderAll();
+        renderAll(true);
         FitTimelineOnPage();
         closeMobileSidebar();
       },
@@ -1607,9 +1686,9 @@ function initApp() {
     dialogSelectedProjectId = null;
   });
 
-  function renderAll() {
+  function renderAll(isAnimated = false) {
     renderDayTabs();
-    renderTimeline();
+    renderTimeline(isAnimated);
     renderEventList();
   }
 
