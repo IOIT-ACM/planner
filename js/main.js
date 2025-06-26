@@ -1482,6 +1482,80 @@ function initApp() {
     URL.revokeObjectURL(url);
   }
 
+  function areProjectsEqual(proj1, proj2) {
+    if (!proj1 || !proj2) return false;
+
+    const normalize = (p) => {
+      if (!p || !p.events || typeof p.maxDays !== "number") return null;
+      const events = JSON.parse(JSON.stringify(p.events));
+      events.forEach((e) => delete e.id);
+      events.sort((a, b) => {
+        if (a.title < b.title) return -1;
+        if (a.title > b.title) return 1;
+        if (a.start < b.start) return -1;
+        if (a.start > b.start) return 1;
+        return 0;
+      });
+      return {
+        events: events,
+        maxDays: p.maxDays,
+        scope: p.scope || "days",
+      };
+    };
+
+    const norm1 = normalize(proj1);
+    const norm2 = normalize(proj2);
+
+    if (!norm1 || !norm2) return false;
+
+    return JSON.stringify(norm1) === JSON.stringify(norm2);
+  }
+
+  function processAndLoadProjectData(importedData) {
+    const importedTitle = importedData.projectTitle || "Imported Project";
+    const existingProject = savedProjects.find(
+      (p) => p.title === importedTitle,
+    );
+
+    if (
+      existingProject &&
+      areProjectsEqual(existingProject.data, importedData)
+    ) {
+      currentProjectId = existingProject.id;
+      currentProjectTitle = existingProject.title;
+      events = JSON.parse(JSON.stringify(existingProject.data.events));
+      maxDays = existingProject.data.maxDays;
+      currentScope = existingProject.data.scope || "days";
+    } else {
+      const uniqueTitle = makeTitleUnique(importedTitle);
+      const newId = Date.now().toString();
+      const newProjectEntry = {
+        id: newId,
+        title: uniqueTitle,
+        data: {
+          events: JSON.parse(JSON.stringify(importedData.events)),
+          maxDays: importedData.maxDays,
+          scope: importedData.scope || "days",
+        },
+      };
+      savedProjects.push(newProjectEntry);
+      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(savedProjects));
+
+      currentProjectId = newId;
+      currentProjectTitle = uniqueTitle;
+      events = newProjectEntry.data.events;
+      maxDays = newProjectEntry.data.maxDays;
+      currentScope = newProjectEntry.data.scope;
+    }
+
+    currentDay = 1;
+    saveCurrentProjectState();
+    updateScopeRadioOptions();
+    renderAll();
+    renderProjectTitleDisplay();
+    FitTimelineOnPage();
+  }
+
   function handleImportData(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1506,50 +1580,16 @@ function initApp() {
         }
 
         if (
-          importedData &&
-          Array.isArray(importedData.events) &&
-          typeof importedData.maxDays === "number"
+          !importedData ||
+          !Array.isArray(importedData.events) ||
+          typeof importedData.maxDays !== "number"
         ) {
-          const importedTitleBase =
-            importedData.projectTitle || "Imported Project";
-          const uniqueImportedTitle = makeTitleUnique(importedTitleBase);
-          const newProjectId = Date.now().toString();
-
-          const newProjectEntry = {
-            id: newProjectId,
-            title: uniqueImportedTitle,
-            data: {
-              events: JSON.parse(JSON.stringify(importedData.events)),
-              maxDays: importedData.maxDays,
-              scope: importedData.scope || "days",
-            },
-          };
-          savedProjects.push(newProjectEntry);
-          localStorage.setItem(
-            PROJECTS_STORAGE_KEY,
-            JSON.stringify(savedProjects),
-          );
-
-          currentScope = importedData.scope || "days";
-          events = JSON.parse(JSON.stringify(importedData.events));
-          maxDays = importedData.maxDays || 1;
-          currentProjectTitle = uniqueImportedTitle;
-          currentProjectId = newProjectId;
-
-          if (maxDays === 0) maxDays = 1;
-          currentDay = 1;
-          saveCurrentProjectState();
-          updateScopeRadioOptions();
-          renderAll();
-          renderProjectTitleDisplay();
-          closeMobileSidebar();
-          FitTimelineOnPage();
-        } else {
-          showCustomAlert(
-            "Invalid file format. Expected { projectTitle: (optional) string, events: [], maxDays: N, scope: (optional) string }",
-            "Import Error",
-          );
+          showCustomAlert("Invalid file format.", "Import Error");
+          return;
         }
+
+        processAndLoadProjectData(importedData);
+        closeMobileSidebar();
       } catch (error) {
         showCustomAlert(
           "Error parsing JSON file: " + error.message,
@@ -2023,7 +2063,6 @@ function initApp() {
     const storedProjectId = storedCurrentData.projectId;
     const storedProjectTitle =
       storedCurrentData.projectTitle || "Untitled Project";
-    currentScope = storedCurrentData.scope || "days";
 
     if (
       storedProjectId &&
@@ -2041,30 +2080,8 @@ function initApp() {
       storedProjectTitle !== "Untitled Project" ||
       (storedCurrentData.maxDays && storedCurrentData.maxDays > 1)
     ) {
-      const titleBase =
-        storedProjectTitle === "Untitled Project"
-          ? "Untitled Project"
-          : storedProjectTitle;
-      const uniqueTitle = makeTitleUnique(titleBase);
-      const newId = Date.now().toString();
-
-      currentProjectId = newId;
-      currentProjectTitle = uniqueTitle;
-      events = storedCurrentData.events || [];
-      maxDays = storedCurrentData.maxDays || 1;
-      currentScope = storedCurrentData.scope || "days";
-
-      const newEntry = {
-        id: currentProjectId,
-        title: currentProjectTitle,
-        data: {
-          events: JSON.parse(JSON.stringify(events)),
-          maxDays: maxDays,
-          scope: currentScope,
-        },
-      };
-      savedProjects.push(newEntry);
-      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(savedProjects));
+      localStorage.removeItem("eventPlannerData");
+      processAndLoadProjectData(storedCurrentData);
       initialLoadPerformed = true;
     }
   }
