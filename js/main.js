@@ -8,12 +8,23 @@ function initApp() {
   const dialogTitle = document.getElementById("dialog-title");
   const eventIdInput = document.getElementById("event-id");
   const eventTitleInput = document.getElementById("event-title-input");
+  const eventDayLabel = document.getElementById("event-day-label");
   const eventDayRadioGroup = document.getElementById("event-day-radio-group");
-  const eventStartTimeInput = document.getElementById("event-start-time");
-  const eventEndTimeInput = document.getElementById("event-end-time");
   const eventColorInput = document.getElementById("event-color");
   const eventLocationInput = document.getElementById("event-location");
   const eventNotesInput = document.getElementById("event-notes");
+
+  const timeInputsContainer = document.getElementById("time-inputs-container");
+  const dayInputsContainer = document.getElementById("day-inputs-container");
+  const monthInputsContainer = document.getElementById(
+    "month-inputs-container",
+  );
+  const eventStartTimeInput = document.getElementById("event-start-time");
+  const eventEndTimeInput = document.getElementById("event-end-time");
+  const eventStartDayInput = document.getElementById("event-start-day");
+  const eventEndDayInput = document.getElementById("event-end-day");
+  const eventStartMonthSelect = document.getElementById("event-start-month");
+  const eventEndMonthSelect = document.getElementById("event-end-month");
 
   const timelineContainerWrapper = document.getElementById(
     "timeline-container-wrapper",
@@ -80,10 +91,17 @@ function initApp() {
     "cancel-edit-project-title-btn",
   );
 
+  const changeScopeBtn = document.getElementById("change-scope-btn");
+  const scopeDialog = document.getElementById("scope-dialog");
+  const scopeForm = document.getElementById("scope-form");
+  const cancelScopeBtn = document.getElementById("cancel-scope-btn");
+  const scopeRadioGroup = document.getElementById("scope-radio-group");
+
   let snapInterval = 15;
   let events = [];
   let currentDay = 1;
   let maxDays = 1;
+  let currentScope = "days";
   let currentProjectTitle = "Untitled Project";
   let currentProjectId = null;
 
@@ -110,11 +128,137 @@ function initApp() {
   const PROJECTS_STORAGE_KEY = "eventPlannerProjects";
   let dialogSelectedProjectId = null;
 
+  const MONTH_NAMES = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  function getScopeLabel(scope, capitalized = false) {
+    const s = scope || currentScope;
+    let label = "Day";
+    if (s === "weeks") label = "Week";
+    else if (s === "months") label = "Month";
+    else if (s === "years") label = "Year";
+    return capitalized ? label : label.toLowerCase();
+  }
+
+  function getTimelineConfig() {
+    const monthNamesShort = MONTH_NAMES.map((m) => m.substring(0, 3));
+    switch (currentScope) {
+      case "weeks":
+        return {
+          totalUnits: 7,
+          unitName: "Day",
+          snapInterval: 1,
+          rulerLabels: (i) => `Day ${i}`,
+          maxVal: 7,
+        };
+      case "months":
+        return {
+          totalUnits: 31,
+          unitName: "Day",
+          snapInterval: 1,
+          rulerLabels: (i) => `${i}`,
+          maxVal: 31,
+        };
+      case "years":
+        return {
+          totalUnits: 12,
+          unitName: "Month",
+          snapInterval: 1,
+          rulerLabels: (i) => monthNamesShort[i - 1],
+          maxVal: 12,
+        };
+      case "days":
+      default:
+        return {
+          totalUnits: 24 * 60,
+          unitName: "Minute",
+          snapInterval: snapInterval,
+          rulerLabels: null,
+          maxVal: 24 * 60,
+        };
+    }
+  }
+
+  function parseUnit(value) {
+    if (currentScope === "days") {
+      if (!value) return 0;
+      const parts = String(value).split(":").map(Number);
+      const hours = parts[0] || 0;
+      const minutes = parts[1] || 0;
+      return hours * 60 + minutes;
+    }
+    return parseInt(value, 10) || 0;
+  }
+
+  function getInterpretedEndUnit(startStr, endStr) {
+    const config = getTimelineConfig();
+    const startUnit = parseUnit(startStr);
+    let endUnit = parseUnit(endStr);
+
+    if (currentScope === "days") {
+      if (endStr === "00:00" && startUnit !== endUnit) {
+        return config.totalUnits;
+      }
+    }
+    return endUnit;
+  }
+
+  function formatUnit(units) {
+    if (currentScope === "days") {
+      const totalMinutes = Math.round(units);
+      const hours = Math.floor(totalMinutes / 60) % 24;
+      const minutes = totalMinutes % 60;
+      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+        2,
+        "0",
+      )}`;
+    }
+    return String(Math.round(units));
+  }
+
+  function snapToUnit(unitValue) {
+    const config = getTimelineConfig();
+    return Math.round(unitValue / config.snapInterval) * config.snapInterval;
+  }
+
+  function formatEventTimeRange(event) {
+    if (!event || !event.start || !event.end) return "";
+    const start = event.start;
+    const end = event.end;
+
+    switch (currentScope) {
+      case "days":
+        return `${formatTimeForDisplay(start)} - ${formatTimeForDisplay(end)}`;
+      case "weeks":
+      case "months":
+        return `Day ${start} - Day ${end}`;
+      case "years":
+        return `${MONTH_NAMES[parseInt(start) - 1]} - ${
+          MONTH_NAMES[parseInt(end) - 1]
+        }`;
+      default:
+        return `${start} - ${end}`;
+    }
+  }
+
   function getCurrentState() {
     return {
       events: JSON.parse(JSON.stringify(events)),
       maxDays: maxDays,
       projectTitle: currentProjectTitle,
+      scope: currentScope,
     };
   }
 
@@ -128,18 +272,20 @@ function initApp() {
     if (!state) return;
 
     const oldMaxDays = maxDays;
+    const oldScope = currentScope;
 
     events = state.events;
     maxDays = state.maxDays;
     currentProjectTitle = state.projectTitle;
+    currentScope = state.scope || "days";
 
     saveCurrentProjectState();
 
     renderProjectTitleDisplay();
-    updateDayRadioOptions();
+    updateScopeRadioOptions();
 
-    if (oldMaxDays !== maxDays) {
-      renderDayTabs();
+    if (oldMaxDays !== maxDays || oldScope !== currentScope) {
+      renderScopeTabs();
     }
 
     renderTimeline(true);
@@ -169,7 +315,6 @@ function initApp() {
         }
       } catch (e) {
         savedProjects = [];
-        console.error("Error parsing saved projects from localStorage:", e);
       }
     } else {
       savedProjects = [];
@@ -184,6 +329,7 @@ function initApp() {
         maxDays,
         projectTitle: currentProjectTitle,
         projectId: currentProjectId,
+        scope: currentScope,
       }),
     );
 
@@ -195,6 +341,7 @@ function initApp() {
         projectInSaved.data.events = JSON.parse(JSON.stringify(events));
         projectInSaved.data.maxDays = maxDays;
         projectInSaved.title = currentProjectTitle;
+        projectInSaved.data.scope = currentScope;
         localStorage.setItem(
           PROJECTS_STORAGE_KEY,
           JSON.stringify(savedProjects),
@@ -255,6 +402,7 @@ function initApp() {
         data: {
           events: JSON.parse(JSON.stringify(events)),
           maxDays: maxDays,
+          scope: currentScope,
         },
       };
       savedProjects.push(newProjectEntry);
@@ -268,8 +416,10 @@ function initApp() {
     editProjectTitleDialog.close();
   });
 
-  function updateDayRadioOptions() {
+  function updateScopeRadioOptions() {
     eventDayRadioGroup.innerHTML = "";
+    const scopeLabel = getScopeLabel(null, true);
+    eventDayLabel.textContent = `${scopeLabel}:`;
     for (let i = 1; i <= maxDays; i++) {
       const radioDiv = document.createElement("div");
       radioDiv.classList.add("radio-option");
@@ -282,7 +432,7 @@ function initApp() {
 
       const label = document.createElement("label");
       label.htmlFor = `event-day-${i}`;
-      label.textContent = `Day ${i}`;
+      label.textContent = `${scopeLabel} ${i}`;
 
       radioDiv.appendChild(input);
       radioDiv.appendChild(label);
@@ -290,13 +440,14 @@ function initApp() {
     }
   }
 
-  function renderDayTabs() {
+  function renderScopeTabs() {
     dayTabsContainer.innerHTML = "";
+    const scopeLabel = getScopeLabel(null, true);
     for (let i = 1; i <= maxDays; i++) {
       const tab = document.createElement("button");
       tab.classList.add("day-tab");
       tab.dataset.day = i;
-      tab.textContent = `Day ${i}`;
+      tab.textContent = `${scopeLabel} ${i}`;
       if (i === currentDay) {
         tab.classList.add("active");
       }
@@ -310,22 +461,27 @@ function initApp() {
     const addDayButton = document.createElement("button");
     addDayButton.id = "add-day-btn";
     addDayButton.textContent = "+";
-    addDayButton.title = "Add New Day";
+    addDayButton.title = `Add New ${scopeLabel}`;
     addDayButton.addEventListener("click", () => {
       historyManager.recordState(currentProjectId, getCurrentState());
       maxDays++;
-      updateDayRadioOptions();
+      updateScopeRadioOptions();
       saveCurrentProjectState();
-      renderDayTabs();
+      renderScopeTabs();
     });
     dayTabsContainer.appendChild(addDayButton);
   }
 
   function getMinTimelineScale() {
     const wrapperWidth = timelineContainerWrapper.clientWidth;
-    const timelineDurationHours = TIMELINE_END_HOUR - TIMELINE_START_HOUR;
-    if (timelineDurationHours <= 0) return 30;
-    return Math.max(10, wrapperWidth / timelineDurationHours);
+    const config = getTimelineConfig();
+    if (config.totalUnits <= 0) return 30;
+
+    if (currentScope === "days") {
+      return Math.max(10, wrapperWidth / 24);
+    } else {
+      return Math.max(10, wrapperWidth / config.totalUnits);
+    }
   }
 
   function createEventBlockElement(eventData, layout) {
@@ -360,9 +516,7 @@ function initApp() {
       if (currentEventData) {
         timelineTooltip.innerHTML = `<strong>${
           currentEventData.title
-        }</strong><br>${formatTimeForDisplay(
-          currentEventData.startTime,
-        )} - ${formatTimeForDisplay(currentEventData.endTime)}`;
+        }</strong><br>${formatEventTimeRange(currentEventData)}`;
         timelineTooltip.classList.remove("hidden");
         updateTooltipPosition(e, timelineTooltip);
       }
@@ -378,117 +532,102 @@ function initApp() {
   }
 
   function renderTimeRuler() {
-    const isMobile = window.matchMedia("(max-width: 768px)").matches;
-    const timelineDurationHours = TIMELINE_END_HOUR - TIMELINE_START_HOUR;
-    const totalTimelineWidth = timelineDurationHours * timelineScale;
+    timeRuler.innerHTML = "";
+    const config = getTimelineConfig();
 
-    timelineContainer.style.width = `${totalTimelineWidth}px`;
-
-    const existingTicks = new Map(
-      Array.from(timeRuler.querySelectorAll(".time-tick")).map((el) => [
-        el.dataset.tickId,
-        el,
-      ]),
-    );
-    const processedTickIds = new Set();
-
-    for (let hour = TIMELINE_START_HOUR; hour <= TIMELINE_END_HOUR; hour++) {
-      const hourTickId = `h-${hour}`;
-      processedTickIds.add(hourTickId);
-      let tick = existingTicks.get(hourTickId);
-
-      if (!tick) {
-        tick = document.createElement("div");
-        tick.classList.add("time-tick");
-        tick.dataset.tickId = hourTickId;
-        timeRuler.appendChild(tick);
-      }
-
-      const tickPosition = (hour - TIMELINE_START_HOUR) * timelineScale;
-      tick.style.left = `${tickPosition}px`;
-
-      let showLabelAndMajor = isMobile ? hour % 3 === 0 : true;
-
-      if (showLabelAndMajor) {
-        tick.classList.add("major");
-        let label = tick.querySelector("span");
-        if (!label) {
-          label = document.createElement("span");
-          tick.appendChild(label);
-        }
+    if (currentScope === "days") {
+      const totalTimelineWidth = 24 * timelineScale;
+      timelineContainer.style.width = `${totalTimelineWidth}px`;
+      for (let hour = TIMELINE_START_HOUR; hour <= TIMELINE_END_HOUR; hour++) {
+        const tick = document.createElement("div");
+        tick.classList.add("time-tick", "major");
+        const tickPosition = (hour - TIMELINE_START_HOUR) * timelineScale;
+        tick.style.left = `${tickPosition}px`;
+        const label = document.createElement("span");
         label.textContent = formatTimeForDisplay(
           `${String(hour % 24).padStart(2, "0")}:00`,
         );
-      } else {
-        tick.classList.remove("major");
-        const label = tick.querySelector("span");
-        if (label) label.remove();
-      }
+        tick.appendChild(label);
+        timeRuler.appendChild(tick);
 
-      if (hour < TIMELINE_END_HOUR) {
-        for (let j = 1; j <= 3; j++) {
-          const quarterTickId = `q-${hour}-${j}`;
-          processedTickIds.add(quarterTickId);
-          let quarterTick = existingTicks.get(quarterTickId);
-
-          if (!quarterTick) {
-            quarterTick = document.createElement("div");
+        if (hour < TIMELINE_END_HOUR) {
+          for (let j = 1; j <= 3; j++) {
+            const quarterTick = document.createElement("div");
             quarterTick.classList.add("time-tick");
-            quarterTick.dataset.tickId = quarterTickId;
+            const quarterPosition = tickPosition + (timelineScale / 4) * j;
+            quarterTick.style.left = `${quarterPosition}px`;
             timeRuler.appendChild(quarterTick);
           }
-          const quarterPosition = tickPosition + (timelineScale / 4) * j;
-          quarterTick.style.left = `${quarterPosition}px`;
         }
       }
-    }
+    } else {
+      const totalTimelineWidth = config.totalUnits * timelineScale;
+      timelineContainer.style.width = `${totalTimelineWidth}px`;
+      const pixelsPerUnit = timelineScale;
 
-    existingTicks.forEach((tick, id) => {
-      if (id && !processedTickIds.has(id)) {
-        tick.remove();
+      for (let i = 1; i <= config.totalUnits; i++) {
+        const tick = document.createElement("div");
+        tick.classList.add("time-tick", "major");
+        const tickPosition = (i - 1) * pixelsPerUnit;
+        tick.style.left = `${tickPosition}px`;
+
+        const label = document.createElement("span");
+        label.textContent = config.rulerLabels(i);
+        tick.appendChild(label);
+        timeRuler.appendChild(tick);
       }
-    });
+    }
   }
 
   function renderTimelineEvents(isAnimated = false) {
-    const pixelsPerMinute = timelineScale / 60;
-    const dayEvents = events.filter((event) => event.day === currentDay);
-
-    dayEvents.sort(
-      (a, b) =>
-        parseTimeToMinutes(a.startTime) - parseTimeToMinutes(b.startTime),
-    );
+    const dayEvents = events
+      .filter((event) => event.day === currentDay)
+      .sort((a, b) => parseUnit(a.start) - parseUnit(b.start));
 
     const lanes = [];
     const eventLayouts = new Map();
+    const config = getTimelineConfig();
 
     dayEvents.forEach((eventData) => {
-      const startMinutes = parseTimeToMinutes(eventData.startTime);
-      const endMinutes = getInterpretedEndMinutes(
-        eventData.startTime,
-        eventData.endTime,
-      );
+      const startUnit = parseUnit(eventData.start);
+      const endUnit = getInterpretedEndUnit(eventData.start, eventData.end);
 
-      if (startMinutes >= endMinutes) return;
+      if (startUnit >= endUnit) {
+        return;
+      }
+      if (currentScope !== "days" && startUnit <= 0) {
+        return;
+      }
 
-      const eventStartOffset =
-        (startMinutes - TIMELINE_START_HOUR * 60) * pixelsPerMinute;
-      let eventWidth = (endMinutes - startMinutes) * pixelsPerMinute;
+      let eventStartOffset, eventWidth;
+
+      if (currentScope === "days") {
+        const pixelsPerMinute = timelineScale / 60;
+        eventStartOffset =
+          (startUnit - TIMELINE_START_HOUR * 60) * pixelsPerMinute;
+        eventWidth = (endUnit - startUnit) * pixelsPerMinute;
+      } else {
+        const pixelsPerUnit = timelineScale;
+        eventStartOffset = (startUnit - 1) * pixelsPerUnit;
+        const durationUnits = endUnit - startUnit + 1;
+        eventWidth = durationUnits * pixelsPerUnit;
+      }
+
       if (eventWidth < MIN_EVENT_WIDTH_PX) eventWidth = MIN_EVENT_WIDTH_PX;
 
       let eventTop = 0;
       let placed = false;
       for (let i = 0; i < lanes.length; i++) {
-        if (lanes[i] <= startMinutes) {
+        if (lanes[i] <= startUnit) {
           eventTop = i * (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN);
-          lanes[i] = endMinutes;
+          lanes[i] = endUnit;
           placed = true;
           break;
         }
       }
       if (!placed) {
         eventTop = lanes.length * (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN);
-        lanes.push(endMinutes);
+        lanes.push(endUnit);
       }
 
       eventLayouts.set(eventData.id, {
@@ -509,17 +648,6 @@ function initApp() {
       100,
       EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN,
     )}px`;
-
-    if (!isAnimated) {
-      timelineEventsContainer.innerHTML = "";
-      dayEvents.forEach((eventData) => {
-        const layout = eventLayouts.get(eventData.id);
-        if (!layout) return;
-        const eventBlock = createEventBlockElement(eventData, layout);
-        timelineEventsContainer.appendChild(eventBlock);
-      });
-      return;
-    }
 
     const existingBlocks = new Map(
       Array.from(timelineEventsContainer.querySelectorAll(".event-block")).map(
@@ -572,16 +700,15 @@ function initApp() {
 
   function renderEventList() {
     eventListUl.innerHTML = "";
-    currentDayListTitle.textContent = `Events for Day ${currentDay}`;
+    const scopeLabel = getScopeLabel(null, true);
+    currentDayListTitle.textContent = `Events for ${scopeLabel} ${currentDay}`;
     const dayEvents = events
       .filter((event) => event.day === currentDay)
-      .sort(
-        (a, b) =>
-          parseTimeToMinutes(a.startTime) - parseTimeToMinutes(b.startTime),
-      );
+      .sort((a, b) => parseUnit(a.start) - parseUnit(b.start));
 
     if (dayEvents.length === 0) {
-      eventListUl.innerHTML = "<li>No events scheduled for this day.</li>";
+      const scopeTerm = getScopeLabel(null, false);
+      eventListUl.innerHTML = `<li>No events scheduled for this ${scopeTerm}.</li>`;
     } else {
       dayEvents.forEach((event) => {
         const li = document.createElement("li");
@@ -656,9 +783,7 @@ function initApp() {
 
         const timeSpan = document.createElement("span");
         timeSpan.classList.add("event-time");
-        timeSpan.textContent = `${formatTimeForDisplay(
-          event.startTime,
-        )} - ${formatTimeForDisplay(event.endTime)}`;
+        timeSpan.textContent = formatEventTimeRange(event);
         titleTimeWrapper.appendChild(timeSpan);
         li.appendChild(titleTimeWrapper);
 
@@ -674,21 +799,67 @@ function initApp() {
         eventListUl.appendChild(li);
       });
     }
-    updateClearDayButtonState();
+    updateClearScopeButtonState();
   }
 
-  function updateClearDayButtonState() {
+  function updateClearScopeButtonState() {
     const dayEvents = events.filter((event) => event.day === currentDay);
     clearDayBtn.classList.remove("hidden");
+    const scopeLabel = getScopeLabel(null, true);
 
     if (currentDay === 1 && dayEvents.length === 0 && maxDays === 1) {
       clearDayBtn.classList.add("hidden");
     } else if (dayEvents.length === 0) {
-      clearDayBtn.textContent = "Delete Day";
-      clearDayBtn.title = `Delete Day ${currentDay}`;
+      clearDayBtn.textContent = `Delete ${scopeLabel}`;
+      clearDayBtn.title = `Delete ${scopeLabel} ${currentDay}`;
     } else {
-      clearDayBtn.textContent = "Clear Day";
-      clearDayBtn.title = `Clear Events for Day ${currentDay}`;
+      clearDayBtn.textContent = `Clear ${scopeLabel}`;
+      clearDayBtn.title = `Clear Events for ${scopeLabel} ${currentDay}`;
+    }
+  }
+
+  function updateEventDialogUI() {
+    const config = getTimelineConfig();
+    timeInputsContainer.classList.add("hidden");
+    dayInputsContainer.classList.add("hidden");
+    monthInputsContainer.classList.add("hidden");
+
+    // Reset all conditional inputs to not be required
+    eventStartTimeInput.required = false;
+    eventEndTimeInput.required = false;
+    eventStartDayInput.required = false;
+    eventEndDayInput.required = false;
+    eventStartMonthSelect.required = false;
+    eventEndMonthSelect.required = false;
+
+    switch (currentScope) {
+      case "weeks":
+      case "months":
+        dayInputsContainer.classList.remove("hidden");
+        eventStartDayInput.required = true;
+        eventEndDayInput.required = true;
+        eventStartDayInput.max = config.maxVal;
+        eventEndDayInput.max = config.maxVal;
+        break;
+      case "years":
+        monthInputsContainer.classList.remove("hidden");
+        eventStartMonthSelect.required = true;
+        eventEndMonthSelect.required = true;
+        eventStartMonthSelect.innerHTML = "";
+        eventEndMonthSelect.innerHTML = "";
+        for (let i = 1; i <= 12; i++) {
+          const option1 = new Option(MONTH_NAMES[i - 1], i);
+          const option2 = new Option(MONTH_NAMES[i - 1], i);
+          eventStartMonthSelect.add(option1);
+          eventEndMonthSelect.add(option2);
+        }
+        break;
+      case "days":
+      default:
+        timeInputsContainer.classList.remove("hidden");
+        eventStartTimeInput.required = true;
+        eventEndTimeInput.required = true;
+        break;
     }
   }
 
@@ -696,7 +867,8 @@ function initApp() {
     dialogTitle.textContent = "Add Event";
     eventForm.reset();
     eventIdInput.value = "";
-    updateDayRadioOptions();
+    updateScopeRadioOptions();
+    updateEventDialogUI();
     const radioToSelect = eventDayRadioGroup.querySelector(
       `input[value="${currentDay}"]`,
     );
@@ -721,17 +893,34 @@ function initApp() {
     if (!event) return;
 
     dialogTitle.textContent = "Edit Event";
+    updateEventDialogUI();
     eventIdInput.value = event.id;
     eventTitleInput.value = event.title;
-    updateDayRadioOptions();
+    updateScopeRadioOptions();
     const radioToSelect = eventDayRadioGroup.querySelector(
       `input[value="${event.day}"]`,
     );
     if (radioToSelect) {
       radioToSelect.checked = true;
     }
-    eventStartTimeInput.value = event.startTime;
-    eventEndTimeInput.value = event.endTime;
+
+    switch (currentScope) {
+      case "weeks":
+      case "months":
+        eventStartDayInput.value = event.start;
+        eventEndDayInput.value = event.end;
+        break;
+      case "years":
+        eventStartMonthSelect.value = event.start;
+        eventEndMonthSelect.value = event.end;
+        break;
+      case "days":
+      default:
+        eventStartTimeInput.value = event.start;
+        eventEndTimeInput.value = event.end;
+        break;
+    }
+
     eventColorInput.value = event.color;
     eventLocationInput.value = event.location || "";
     eventNotesInput.value = event.notes || "";
@@ -743,14 +932,38 @@ function initApp() {
 
   eventForm.addEventListener("submit", (e) => {
     e.preventDefault();
+
     const id = eventIdInput.value;
-    const startTimeValue = eventStartTimeInput.value;
-    const endTimeValue = eventEndTimeInput.value;
+    const title = eventTitleInput.value.trim();
 
-    const startMinutes = parseTimeToMinutes(startTimeValue);
-    const endMinutes = getInterpretedEndMinutes(startTimeValue, endTimeValue);
+    if (!title) {
+      showCustomAlert("Event title cannot be empty.", "Validation Error");
+      return;
+    }
 
-    if (startMinutes >= endMinutes) {
+    let startValue, endValue;
+
+    switch (currentScope) {
+      case "weeks":
+      case "months":
+        startValue = eventStartDayInput.value;
+        endValue = eventEndDayInput.value;
+        break;
+      case "years":
+        startValue = eventStartMonthSelect.value;
+        endValue = eventEndMonthSelect.value;
+        break;
+      case "days":
+      default:
+        startValue = eventStartTimeInput.value;
+        endValue = eventEndTimeInput.value;
+        break;
+    }
+
+    const startUnit = parseUnit(startValue);
+    const endUnit = getInterpretedEndUnit(startValue, endValue);
+
+    if (startUnit >= endUnit) {
       showCustomAlert("End time must be after start time.", "Validation Error");
       return;
     }
@@ -759,7 +972,11 @@ function initApp() {
       'input[name="event-day"]:checked',
     );
     if (!selectedDayRadio) {
-      showCustomAlert("Please select a day for the event.", "Validation Error");
+      const scopeTerm = getScopeLabel(null, false);
+      showCustomAlert(
+        `Please select a ${scopeTerm} for the event.`,
+        "Validation Error",
+      );
       return;
     }
 
@@ -767,10 +984,10 @@ function initApp() {
 
     const eventData = {
       id: id || Date.now().toString(),
-      title: eventTitleInput.value,
+      title: title,
       day: parseInt(selectedDayRadio.value),
-      startTime: startTimeValue,
-      endTime: endTimeValue,
+      start: startValue,
+      end: endValue,
       color: eventColorInput.value,
       location: eventLocationInput.value,
       notes: eventNotesInput.value,
@@ -781,6 +998,7 @@ function initApp() {
     } else {
       events.push(eventData);
     }
+
     saveCurrentProjectState();
     renderTimeline(true);
     renderEventList();
@@ -806,18 +1024,32 @@ function initApp() {
   });
 
   duplicateEventBtn.addEventListener("click", () => {
-    const idToDuplicate = eventIdInput.value;
-    if (!idToDuplicate) return;
+    if (!eventIdInput.value) return;
+    let startValue, endValue;
 
-    const startTimeValue = eventStartTimeInput.value;
-    const endTimeValue = eventEndTimeInput.value;
+    switch (currentScope) {
+      case "weeks":
+      case "months":
+        startValue = eventStartDayInput.value;
+        endValue = eventEndDayInput.value;
+        break;
+      case "years":
+        startValue = eventStartMonthSelect.value;
+        endValue = eventEndMonthSelect.value;
+        break;
+      case "days":
+      default:
+        startValue = eventStartTimeInput.value;
+        endValue = eventEndTimeInput.value;
+        break;
+    }
 
-    const startMinutes = parseTimeToMinutes(startTimeValue);
-    const endMinutes = getInterpretedEndMinutes(startTimeValue, endTimeValue);
+    const startUnit = parseUnit(startValue);
+    const endUnit = getInterpretedEndUnit(startValue, endValue);
 
-    if (startMinutes >= endMinutes) {
+    if (startUnit > endUnit) {
       showCustomAlert(
-        "End time must be after start time to duplicate.",
+        "End must be after start to duplicate.",
         "Validation Error",
       );
       return;
@@ -827,8 +1059,9 @@ function initApp() {
       'input[name="event-day"]:checked',
     );
     if (!selectedDayRadio) {
+      const scopeTerm = getScopeLabel(null, false);
       showCustomAlert(
-        "Please select a day for the event to duplicate.",
+        `Please select a ${scopeTerm} for the event to duplicate.`,
         "Validation Error",
       );
       return;
@@ -840,8 +1073,8 @@ function initApp() {
       id: Date.now().toString(),
       title: eventTitleInput.value,
       day: parseInt(selectedDayRadio.value),
-      startTime: startTimeValue,
-      endTime: endTimeValue,
+      start: startValue,
+      end: endValue,
       color: eventColorInput.value,
       location: eventLocationInput.value,
       notes: eventNotesInput.value,
@@ -871,80 +1104,71 @@ function initApp() {
   function FitTimelineOnPage() {
     const dayEvents = events.filter((event) => event.day === currentDay);
     const wrapperWidth = timelineContainerWrapper.clientWidth;
+    const config = getTimelineConfig();
 
     if (dayEvents.length === 0) {
       timelineScale = getMinTimelineScale();
       renderTimeline(true);
       timelineContainerWrapper.scrollLeft = 0;
-    } else {
-      let minEventStartMinutes = TIMELINE_END_HOUR * 60;
-      let maxEventEndMinutes = TIMELINE_START_HOUR * 60;
-
-      dayEvents.forEach((event) => {
-        minEventStartMinutes = Math.min(
-          minEventStartMinutes,
-          parseTimeToMinutes(event.startTime),
-        );
-        maxEventEndMinutes = Math.max(
-          maxEventEndMinutes,
-          getInterpretedEndMinutes(event.startTime, event.endTime),
-        );
-      });
-
-      const FIT_PADDING_MINUTES = 30;
-      const MIN_FIT_VIEW_DURATION_MINUTES = 60;
-      const FULL_DAY_MINUTES = (TIMELINE_END_HOUR - TIMELINE_START_HOUR) * 60;
-      const eventActualSpanMinutes = maxEventEndMinutes - minEventStartMinutes;
-      let targetViewDurationMinutes =
-        eventActualSpanMinutes + 2 * FIT_PADDING_MINUTES;
-      targetViewDurationMinutes = Math.max(
-        targetViewDurationMinutes,
-        MIN_FIT_VIEW_DURATION_MINUTES,
-      );
-      targetViewDurationMinutes = Math.min(
-        targetViewDurationMinutes,
-        FULL_DAY_MINUTES,
-      );
-
-      const eventCenterMinutes =
-        (minEventStartMinutes + maxEventEndMinutes) / 2;
-      let viewStartMinutes = eventCenterMinutes - targetViewDurationMinutes / 2;
-      let viewEndMinutes = eventCenterMinutes + targetViewDurationMinutes / 2;
-
-      if (viewStartMinutes < TIMELINE_START_HOUR * 60) {
-        viewStartMinutes = TIMELINE_START_HOUR * 60;
-        viewEndMinutes = Math.min(
-          TIMELINE_END_HOUR * 60,
-          viewStartMinutes + targetViewDurationMinutes,
-        );
-      }
-      if (viewEndMinutes > TIMELINE_END_HOUR * 60) {
-        viewEndMinutes = TIMELINE_END_HOUR * 60;
-        viewStartMinutes = Math.max(
-          TIMELINE_START_HOUR * 60,
-          viewEndMinutes - targetViewDurationMinutes,
-        );
-      }
-
-      const finalViewDurationMinutes = viewEndMinutes - viewStartMinutes;
-
-      if (finalViewDurationMinutes <= 0) {
-        timelineScale = getMinTimelineScale();
-        renderTimeline(true);
-        timelineContainerWrapper.scrollLeft = 0;
-        return;
-      }
-
-      let newScale = (wrapperWidth * 60) / finalViewDurationMinutes;
-      newScale = Math.max(getMinTimelineScale(), newScale);
-      newScale = Math.min(300, newScale);
-      timelineScale = newScale;
-      renderTimeline(true);
-
-      const scrollTargetPx =
-        (viewStartMinutes - TIMELINE_START_HOUR * 60) * (timelineScale / 60);
-      timelineContainerWrapper.scrollLeft = scrollTargetPx;
+      return;
     }
+
+    let minEventStartUnit = config.totalUnits;
+    let maxEventEndUnit = 0;
+
+    dayEvents.forEach((event) => {
+      minEventStartUnit = Math.min(minEventStartUnit, parseUnit(event.start));
+      maxEventEndUnit = Math.max(
+        maxEventEndUnit,
+        getInterpretedEndUnit(event.start, event.end),
+      );
+    });
+
+    if (currentScope !== "days") {
+      maxEventEndUnit += 1;
+    }
+
+    const PADDING_UNITS = currentScope === "days" ? 30 : 1;
+    const MIN_VIEW_UNITS = currentScope === "days" ? 60 : 2;
+
+    let viewStartUnit = minEventStartUnit - PADDING_UNITS;
+    let viewEndUnit = maxEventEndUnit + PADDING_UNITS;
+    let viewDuration = viewEndUnit - viewStartUnit;
+
+    if (viewDuration < MIN_VIEW_UNITS) {
+      const center = (viewStartUnit + viewEndUnit) / 2;
+      viewStartUnit = center - MIN_VIEW_UNITS / 2;
+      viewEndUnit = center + MIN_VIEW_UNITS / 2;
+    }
+
+    viewStartUnit = Math.max(0, viewStartUnit);
+    viewEndUnit = Math.min(config.totalUnits, viewEndUnit);
+    viewDuration = viewEndUnit - viewStartUnit;
+
+    if (viewDuration <= 0) {
+      timelineScale = getMinTimelineScale();
+      renderTimeline(true);
+      return;
+    }
+
+    const pixelsPerUnit = wrapperWidth / viewDuration;
+    if (currentScope === "days") {
+      timelineScale = pixelsPerUnit * 60;
+    } else {
+      timelineScale = pixelsPerUnit;
+    }
+    timelineScale = Math.max(getMinTimelineScale(), timelineScale);
+    timelineScale = Math.min(300, timelineScale);
+
+    renderTimeline(true);
+
+    const pixelsPerBaseUnit =
+      currentScope === "days" ? timelineScale / 60 : timelineScale;
+    const scrollStartOffset = currentScope === "days" ? 0 : 1;
+    const scrollTargetPx =
+      (viewStartUnit - scrollStartOffset) * pixelsPerBaseUnit;
+
+    timelineContainerWrapper.scrollLeft = scrollTargetPx;
   }
 
   fitTimelineBtn.addEventListener("click", FitTimelineOnPage);
@@ -1011,9 +1235,7 @@ function initApp() {
       const rect = timelineEventsContainer.getBoundingClientRect();
       let currentX = e.clientX - rect.left;
 
-      const pixelsPerMinute = timelineScale / 60;
-      const totalTimelineWidthPx =
-        (TIMELINE_END_HOUR - TIMELINE_START_HOUR) * 60 * pixelsPerMinute;
+      const totalTimelineWidthPx = timelineContainer.clientWidth;
       currentX = Math.max(0, Math.min(currentX, totalTimelineWidthPx));
 
       let newLeft, newWidth;
@@ -1034,7 +1256,6 @@ function initApp() {
     if (!draggingEvent && !resizingEvent) return;
     e.preventDefault();
 
-    const pixelsPerMinute = timelineScale / 60;
     const timelineRect = timelineContainerWrapper.getBoundingClientRect();
     const scrollLeft = timelineContainerWrapper.scrollLeft;
     let mouseXInTimeline = e.clientX - timelineRect.left + scrollLeft;
@@ -1047,14 +1268,16 @@ function initApp() {
 
       let newLeftPx = mouseXInTimeline - dragOffsetX;
       newLeftPx = Math.max(0, newLeftPx);
-      const eventDurationMinutes =
-        getInterpretedEndMinutes(
-          draggingEvent.startTime,
-          draggingEvent.endTime,
-        ) - parseTimeToMinutes(draggingEvent.startTime);
-      const maxLeftPx =
-        (TIMELINE_END_HOUR - TIMELINE_START_HOUR) * 60 * pixelsPerMinute -
-        eventDurationMinutes * pixelsPerMinute;
+
+      const eventDurationUnits =
+        getInterpretedEndUnit(draggingEvent.start, draggingEvent.end) -
+        parseUnit(draggingEvent.start);
+      const pixelsPerUnit =
+        currentScope === "days" ? timelineScale / 60 : timelineScale;
+      const eventWidthPx =
+        (eventDurationUnits + (currentScope === "days" ? 0 : 1)) *
+        pixelsPerUnit;
+      const maxLeftPx = timelineContainer.clientWidth - eventWidthPx;
       newLeftPx = Math.min(newLeftPx, maxLeftPx);
       eventBlock.style.left = `${newLeftPx}px`;
     } else if (resizingEvent) {
@@ -1063,23 +1286,27 @@ function initApp() {
       );
       if (!eventBlock) return;
 
-      const originalStartMinutes = parseTimeToMinutes(resizingEvent.startTime);
-      const originalEndMinutes = getInterpretedEndMinutes(
-        resizingEvent.startTime,
-        resizingEvent.endTime,
+      const pixelsPerUnit =
+        currentScope === "days" ? timelineScale / 60 : timelineScale;
+      const originalStartUnit = parseUnit(resizingEvent.start);
+      const originalEndUnit = getInterpretedEndUnit(
+        resizingEvent.start,
+        resizingEvent.end,
       );
-      const originalStartPx =
-        (originalStartMinutes - TIMELINE_START_HOUR * 60) * pixelsPerMinute;
+      const startOffset = currentScope === "days" ? 0 : 1;
+
+      const originalStartPx = (originalStartUnit - startOffset) * pixelsPerUnit;
       const originalWidthPx =
-        (originalEndMinutes - originalStartMinutes) * pixelsPerMinute;
+        (originalEndUnit -
+          originalStartUnit +
+          (currentScope === "days" ? 0 : 1)) *
+        pixelsPerUnit;
 
       if (resizeHandleType === "right") {
         let newWidthPx = mouseXInTimeline - originalStartPx;
         newWidthPx = Math.max(MIN_EVENT_WIDTH_PX, newWidthPx);
-        const maxTimelinePx =
-          (TIMELINE_END_HOUR - TIMELINE_START_HOUR) * 60 * pixelsPerMinute;
-        if (originalStartPx + newWidthPx > maxTimelinePx) {
-          newWidthPx = maxTimelinePx - originalStartPx;
+        if (originalStartPx + newWidthPx > timelineContainer.clientWidth) {
+          newWidthPx = timelineContainer.clientWidth - originalStartPx;
         }
         eventBlock.style.width = `${newWidthPx}px`;
       } else {
@@ -1115,218 +1342,101 @@ function initApp() {
         }
         ghostEventBlock = null;
 
-        const minPixelWidthToCreateEvent = 10;
-        if (finalWidth < minPixelWidthToCreateEvent) {
-          return;
-        }
+        if (finalWidth < 10) return;
 
-        const pixelsPerMinute = timelineScale / 60;
-        let startMinutes = Math.round(
-          finalRectLeft / pixelsPerMinute + TIMELINE_START_HOUR * 60,
-        );
-        let endMinutes = Math.round(
-          (finalRectLeft + finalWidth) / pixelsPerMinute +
-            TIMELINE_START_HOUR * 60,
+        const pixelsPerUnit =
+          currentScope === "days" ? timelineScale / 60 : timelineScale;
+        const startOffset = currentScope === "days" ? 0 : 1;
+
+        let startUnit = snapToUnit(finalRectLeft / pixelsPerUnit + startOffset);
+        let endUnit = snapToUnit(
+          (finalRectLeft + finalWidth) / pixelsPerUnit + startOffset,
         );
 
-        startMinutes = snapToNearestQuarterHour(startMinutes, snapInterval);
-        endMinutes = snapToNearestQuarterHour(endMinutes, snapInterval);
-
-        const MIN_CREATION_DURATION_MINUTES = 15;
-        if (endMinutes <= startMinutes) {
-          endMinutes = startMinutes + MIN_CREATION_DURATION_MINUTES;
-        } else if (endMinutes - startMinutes < MIN_CREATION_DURATION_MINUTES) {
-          endMinutes = startMinutes + MIN_CREATION_DURATION_MINUTES;
+        if (currentScope !== "days") {
+          endUnit -= 1;
         }
 
-        startMinutes = Math.max(TIMELINE_START_HOUR * 60, startMinutes);
-        endMinutes = Math.min(TIMELINE_END_HOUR * 60, endMinutes);
-
-        if (endMinutes <= startMinutes) {
-          return;
+        const MIN_DURATION = currentScope === "days" ? 15 : 1;
+        if (endUnit <= startUnit) {
+          endUnit = startUnit + MIN_DURATION;
         }
 
-        const startTimeStr = formatMinutesToTime(startMinutes);
-        const endTimeStr =
-          endMinutes === TIMELINE_END_HOUR * 60
-            ? "00:00"
-            : formatMinutesToTime(endMinutes);
+        const config = getTimelineConfig();
+        startUnit = Math.max(startOffset, startUnit);
+        endUnit = Math.min(config.totalUnits, endUnit);
+        if (startUnit >= endUnit) return;
 
         openAddDialog();
-        eventStartTimeInput.value = startTimeStr;
-        eventEndTimeInput.value = endTimeStr;
-
-        const radioToSelect = eventDayRadioGroup.querySelector(
-          `input[value="${currentDay}"]`,
-        );
-        if (radioToSelect) {
-          radioToSelect.checked = true;
-        } else {
-          const firstRadio = eventDayRadioGroup.querySelector(
-            'input[type="radio"]',
-          );
-          if (firstRadio) firstRadio.checked = true;
+        switch (currentScope) {
+          case "weeks":
+          case "months":
+            eventStartDayInput.value = formatUnit(startUnit);
+            eventEndDayInput.value = formatUnit(endUnit);
+            break;
+          case "years":
+            eventStartMonthSelect.value = formatUnit(startUnit);
+            eventEndMonthSelect.value = formatUnit(endUnit);
+            break;
+          default:
+            eventStartTimeInput.value = formatUnit(startUnit);
+            eventEndTimeInput.value = formatUnit(endUnit);
+            break;
         }
       }
       return;
     }
 
-    if (draggingEvent) {
+    if (draggingEvent || resizingEvent) {
       const eventBlock = timelineEventsContainer.querySelector(
-        `.event-block[data-event-id="${draggingEvent.id}"]`,
+        `.event-block[data-event-id="${(draggingEvent || resizingEvent).id}"]`,
       );
       if (eventBlock) {
-        const distMoved = Math.sqrt(
-          Math.pow(e.clientX - mouseDownPos.x, 2) +
-            Math.pow(e.clientY - mouseDownPos.y, 2),
-        );
-
-        if (distMoved < CLICK_THRESHOLD_PX) {
-          openEditDialog(draggingEvent.id);
-          eventBlock.style.cursor = "grab";
-          eventBlock.style.zIndex = "10";
-          draggingEvent = null;
-          mouseDownPos = null;
-          document.body.style.cursor = "default";
-          renderTimeline();
-          return;
-        }
-
-        historyManager.recordState(currentProjectId, getCurrentState());
-
-        const pixelsPerMinute = timelineScale / 60;
-        const newLeftPx = parseFloat(eventBlock.style.left);
-        const eventDurationMinutes =
-          getInterpretedEndMinutes(
-            draggingEvent.startTime,
-            draggingEvent.endTime,
-          ) - parseTimeToMinutes(draggingEvent.startTime);
-        let newStartMinutes =
-          Math.round(newLeftPx / pixelsPerMinute) + TIMELINE_START_HOUR * 60;
-        newStartMinutes = snapToNearestQuarterHour(
-          newStartMinutes,
-          snapInterval,
-        );
-        newStartMinutes = Math.max(TIMELINE_START_HOUR * 60, newStartMinutes);
-        let newEndMinutes = newStartMinutes + eventDurationMinutes;
-
-        if (newEndMinutes > TIMELINE_END_HOUR * 60) {
-          newEndMinutes = TIMELINE_END_HOUR * 60;
-          newStartMinutes = newEndMinutes - eventDurationMinutes;
-          newStartMinutes = snapToNearestQuarterHour(
-            newStartMinutes,
-            snapInterval,
+        if (draggingEvent) {
+          const distMoved = Math.sqrt(
+            Math.pow(e.clientX - mouseDownPos.x, 2) +
+              Math.pow(e.clientY - mouseDownPos.y, 2),
           );
-          newStartMinutes = Math.max(TIMELINE_START_HOUR * 60, newStartMinutes);
-        }
-
-        draggingEvent.startTime = formatMinutesToTime(newStartMinutes);
-        if (newEndMinutes === TIMELINE_END_HOUR * 60) {
-          draggingEvent.endTime = "00:00";
-        } else {
-          draggingEvent.endTime = formatMinutesToTime(newEndMinutes);
-        }
-        saveCurrentProjectState();
-        renderTimeline(true);
-        renderEventList();
-      }
-    } else if (resizingEvent) {
-      const eventBlock = timelineEventsContainer.querySelector(
-        `.event-block[data-event-id="${resizingEvent.id}"]`,
-      );
-      if (eventBlock) {
-        historyManager.recordState(currentProjectId, getCurrentState());
-        const pixelsPerMinute = timelineScale / 60;
-        const newStartPx = parseFloat(eventBlock.style.left);
-        const newWidthPx = parseFloat(eventBlock.style.width);
-        let tentativeStartMinutes =
-          Math.round(newStartPx / pixelsPerMinute) + TIMELINE_START_HOUR * 60;
-        let tentativeEndMinutes =
-          Math.round((newStartPx + newWidthPx) / pixelsPerMinute) +
-          TIMELINE_START_HOUR * 60;
-        let finalStartMinutes, finalEndMinutes;
-        const originalEventStartMinutes = parseTimeToMinutes(
-          resizingEvent.startTime,
-        );
-        const originalEventEndMinutes = getInterpretedEndMinutes(
-          resizingEvent.startTime,
-          resizingEvent.endTime,
-        );
-        const MIN_RESIZE_DURATION_MINUTES = 15;
-
-        if (resizeHandleType === "left") {
-          finalStartMinutes = snapToNearestQuarterHour(
-            tentativeStartMinutes,
-            snapInterval,
-          );
-          finalEndMinutes = originalEventEndMinutes;
-        } else {
-          finalStartMinutes = originalEventStartMinutes;
-          finalEndMinutes = snapToNearestQuarterHour(
-            tentativeEndMinutes,
-            snapInterval,
-          );
-        }
-
-        finalStartMinutes = Math.max(
-          TIMELINE_START_HOUR * 60,
-          finalStartMinutes,
-        );
-        finalEndMinutes = Math.min(TIMELINE_END_HOUR * 60, finalEndMinutes);
-
-        if (finalEndMinutes - finalStartMinutes < MIN_RESIZE_DURATION_MINUTES) {
-          if (resizeHandleType === "right") {
-            finalEndMinutes = finalStartMinutes + MIN_RESIZE_DURATION_MINUTES;
-            finalEndMinutes = snapToNearestQuarterHour(
-              finalEndMinutes,
-              snapInterval,
-            );
+          if (distMoved < CLICK_THRESHOLD_PX) {
+            openEditDialog(draggingEvent.id);
+            draggingEvent = null;
           } else {
-            finalStartMinutes = finalEndMinutes - MIN_RESIZE_DURATION_MINUTES;
-            finalStartMinutes = snapToNearestQuarterHour(
-              finalStartMinutes,
-              snapInterval,
+            historyManager.recordState(currentProjectId, getCurrentState());
+            const pixelsPerUnit =
+              currentScope === "days" ? timelineScale / 60 : timelineScale;
+            const startOffset = currentScope === "days" ? 0 : 1;
+            const newLeftPx = parseFloat(eventBlock.style.left);
+            let newStartUnit = snapToUnit(
+              newLeftPx / pixelsPerUnit + startOffset,
             );
+            const duration =
+              parseUnit(draggingEvent.end) - parseUnit(draggingEvent.start);
+            let newEndUnit = newStartUnit + duration;
+            draggingEvent.start = formatUnit(newStartUnit);
+            draggingEvent.end = formatUnit(newEndUnit);
           }
-          finalStartMinutes = Math.max(
-            TIMELINE_START_HOUR * 60,
-            finalStartMinutes,
-          );
-          finalEndMinutes = Math.min(TIMELINE_END_HOUR * 60, finalEndMinutes);
-        }
+        } else if (resizingEvent) {
+          historyManager.recordState(currentProjectId, getCurrentState());
+          const pixelsPerUnit =
+            currentScope === "days" ? timelineScale / 60 : timelineScale;
+          const startOffset = currentScope === "days" ? 0 : 1;
+          const newLeftPx = parseFloat(eventBlock.style.left);
+          const newWidthPx = parseFloat(eventBlock.style.width);
 
-        if (finalStartMinutes >= finalEndMinutes) {
-          if (resizeHandleType === "right") {
-            finalStartMinutes = originalEventStartMinutes;
-            finalEndMinutes = snapToNearestQuarterHour(
-              finalStartMinutes + MIN_RESIZE_DURATION_MINUTES,
-              snapInterval,
-            );
-          } else {
-            finalEndMinutes = originalEventEndMinutes;
-            finalStartMinutes = snapToNearestQuarterHour(
-              finalEndMinutes - MIN_RESIZE_DURATION_MINUTES,
-              snapInterval,
-            );
-          }
-          finalStartMinutes = Math.max(
-            TIMELINE_START_HOUR * 60,
-            finalStartMinutes,
+          let newStartUnit = snapToUnit(
+            newLeftPx / pixelsPerUnit + startOffset,
           );
-          finalEndMinutes = Math.min(TIMELINE_END_HOUR * 60, finalEndMinutes);
-          if (finalStartMinutes >= finalEndMinutes) {
-            if (resizeHandleType === "right")
-              finalEndMinutes = finalStartMinutes + MIN_RESIZE_DURATION_MINUTES;
-            else
-              finalStartMinutes = finalEndMinutes - MIN_RESIZE_DURATION_MINUTES;
-          }
-        }
+          let newEndUnit =
+            snapToUnit((newLeftPx + newWidthPx) / pixelsPerUnit + startOffset) -
+            (currentScope === "days" ? 0 : 1);
 
-        resizingEvent.startTime = formatMinutesToTime(finalStartMinutes);
-        if (finalEndMinutes === TIMELINE_END_HOUR * 60) {
-          resizingEvent.endTime = "00:00";
-        } else {
-          resizingEvent.endTime = formatMinutesToTime(finalEndMinutes);
+          if (newStartUnit >= newEndUnit) {
+            if (resizeHandleType === "right") newEndUnit = newStartUnit;
+            else newStartUnit = newEndUnit;
+          }
+
+          resizingEvent.start = formatUnit(newStartUnit);
+          resizingEvent.end = formatUnit(newEndUnit);
         }
         saveCurrentProjectState();
         renderTimeline(true);
@@ -1336,12 +1446,12 @@ function initApp() {
 
     if (draggingEvent || resizingEvent) {
       document.body.style.cursor = "default";
-      const allEventBlocks =
-        timelineEventsContainer.querySelectorAll(".event-block");
-      allEventBlocks.forEach((block) => {
-        block.style.cursor = "grab";
-        block.style.zIndex = "10";
-      });
+      timelineEventsContainer
+        .querySelectorAll(".event-block")
+        .forEach((block) => {
+          block.style.cursor = "grab";
+          block.style.zIndex = "10";
+        });
     }
     draggingEvent = null;
     resizingEvent = null;
@@ -1354,6 +1464,7 @@ function initApp() {
       projectTitle: currentProjectTitle,
       events: events,
       maxDays: maxDays,
+      scope: currentScope,
     };
     const jsonString = JSON.stringify(dataToExport, null, 2);
     const blob = new Blob([jsonString], { type: "application/json" });
@@ -1377,6 +1488,22 @@ function initApp() {
     reader.onload = (e) => {
       try {
         const importedData = JSON.parse(e.target.result);
+
+        if (importedData.events && importedData.events.length > 0) {
+          if (
+            importedData.events[0].startTime !== undefined &&
+            importedData.events[0].start === undefined
+          ) {
+            importedData.scope = "days";
+            importedData.events.forEach((event) => {
+              event.start = event.startTime;
+              event.end = event.endTime;
+              delete event.startTime;
+              delete event.endTime;
+            });
+          }
+        }
+
         if (
           importedData &&
           Array.isArray(importedData.events) &&
@@ -1393,6 +1520,7 @@ function initApp() {
             data: {
               events: JSON.parse(JSON.stringify(importedData.events)),
               maxDays: importedData.maxDays,
+              scope: importedData.scope || "days",
             },
           };
           savedProjects.push(newProjectEntry);
@@ -1401,6 +1529,7 @@ function initApp() {
             JSON.stringify(savedProjects),
           );
 
+          currentScope = importedData.scope || "days";
           events = JSON.parse(JSON.stringify(importedData.events));
           maxDays = importedData.maxDays || 1;
           currentProjectTitle = uniqueImportedTitle;
@@ -1409,14 +1538,14 @@ function initApp() {
           if (maxDays === 0) maxDays = 1;
           currentDay = 1;
           saveCurrentProjectState();
-          updateDayRadioOptions();
+          updateScopeRadioOptions();
           renderAll();
           renderProjectTitleDisplay();
           closeMobileSidebar();
           FitTimelineOnPage();
         } else {
           showCustomAlert(
-            "Invalid file format. Expected { projectTitle: (optional) string, events: [], maxDays: N }",
+            "Invalid file format. Expected { projectTitle: (optional) string, events: [], maxDays: N, scope: (optional) string }",
             "Import Error",
           );
         }
@@ -1449,12 +1578,13 @@ function initApp() {
   });
 
   clearDayBtn.addEventListener("click", () => {
-    const isDeleteAction = clearDayBtn.textContent === "Delete Day";
+    const isDeleteAction = clearDayBtn.textContent.startsWith("Delete");
+    const scopeLabel = getScopeLabel(null, true);
 
     if (isDeleteAction) {
       showCustomConfirm(
-        `Do you really want to delete Day ${currentDay}? This action cannot be undone.`,
-        "Delete Day",
+        `Do you really want to delete ${scopeLabel} ${currentDay}? This action cannot be undone.`,
+        `Delete ${scopeLabel}`,
         () => {
           historyManager.recordState(currentProjectId, getCurrentState());
           const dayToDelete = currentDay;
@@ -1479,15 +1609,15 @@ function initApp() {
           }
           currentDay = Math.max(1, currentDay);
           saveCurrentProjectState();
-          updateDayRadioOptions();
+          updateScopeRadioOptions();
           renderAll(true);
           FitTimelineOnPage();
         },
       );
     } else {
       showCustomConfirm(
-        `Do you really want to delete all events for Day ${currentDay}? This action cannot be undone.`,
-        "Clear Day Events",
+        `Do you really want to delete all events for ${scopeLabel} ${currentDay}? This action cannot be undone.`,
+        `Clear ${scopeLabel} Events`,
         () => {
           historyManager.recordState(currentProjectId, getCurrentState());
           events = events.filter((event) => event.day !== currentDay);
@@ -1512,7 +1642,7 @@ function initApp() {
 
         saveCurrentProjectState();
 
-        updateDayRadioOptions();
+        updateScopeRadioOptions();
         renderAll(true);
         FitTimelineOnPage();
         closeMobileSidebar();
@@ -1565,7 +1695,7 @@ function initApp() {
         const newProjectEntry = {
           id: currentProjectId,
           title: currentProjectTitle,
-          data: { events: [], maxDays: 1 },
+          data: { events: [], maxDays: 1, scope: currentScope },
         };
         savedProjects.push(newProjectEntry);
         localStorage.setItem(
@@ -1576,7 +1706,7 @@ function initApp() {
         saveCurrentProjectState();
 
         renderProjectTitleDisplay();
-        updateDayRadioOptions();
+        updateScopeRadioOptions();
         renderAll();
         FitTimelineOnPage();
 
@@ -1600,13 +1730,17 @@ function initApp() {
 
   function renderSavedProjectsList() {
     savedProjectsListUI.innerHTML = "";
-    if (savedProjects.length === 0) {
+    const projectsForScope = savedProjects.filter(
+      (p) => (p.data.scope || "days") === currentScope,
+    );
+
+    if (projectsForScope.length === 0) {
       noSavedProjectsMsg.classList.remove("hidden");
       savedProjectsListUI.classList.add("hidden");
     } else {
       noSavedProjectsMsg.classList.add("hidden");
       savedProjectsListUI.classList.remove("hidden");
-      savedProjects.forEach((proj) => {
+      projectsForScope.forEach((proj) => {
         const li = document.createElement("li");
         li.textContent = proj.title;
         li.dataset.projectId = proj.id;
@@ -1651,7 +1785,7 @@ function initApp() {
         savedProjectsListUI.appendChild(li);
       });
     }
-    if (!savedProjects.find((p) => p.id === dialogSelectedProjectId)) {
+    if (!projectsForScope.find((p) => p.id === dialogSelectedProjectId)) {
       dialogSelectedProjectId = null;
       loadSelectedProjectBtn.disabled = true;
     }
@@ -1674,10 +1808,11 @@ function initApp() {
     maxDays = projectToLoad.data.maxDays;
     currentProjectTitle = projectToLoad.title;
     currentProjectId = projectToLoad.id;
+    currentScope = projectToLoad.data.scope || "days";
     currentDay = 1;
 
     saveCurrentProjectState();
-    updateDayRadioOptions();
+    updateScopeRadioOptions();
     renderAll();
     renderProjectTitleDisplay();
     FitTimelineOnPage();
@@ -1693,22 +1828,30 @@ function initApp() {
     localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(savedProjects));
 
     if (currentProjectId === projectIdToDelete) {
-      if (savedProjects.length > 0) {
-        const firstProject = savedProjects[0];
-        events = JSON.parse(JSON.stringify(firstProject.data.events));
-        maxDays = firstProject.data.maxDays;
-        currentProjectTitle = firstProject.title;
-        currentProjectId = firstProject.id;
+      let nextProject = savedProjects.find(
+        (p) => (p.data.scope || "days") === currentScope,
+      );
+      if (!nextProject && savedProjects.length > 0) {
+        nextProject = savedProjects[0];
+      }
+
+      if (nextProject) {
+        events = JSON.parse(JSON.stringify(nextProject.data.events));
+        maxDays = nextProject.data.maxDays;
+        currentProjectTitle = nextProject.title;
+        currentProjectId = nextProject.id;
+        currentScope = nextProject.data.scope || "days";
       } else {
         events = [];
         maxDays = 1;
         currentProjectTitle = "Untitled Project";
+        currentScope = "days";
         const newId = Date.now().toString();
         currentProjectId = newId;
         savedProjects.push({
           id: newId,
           title: "Untitled Project",
-          data: { events: [], maxDays: 1 },
+          data: { events: [], maxDays: 1, scope: currentScope },
         });
         localStorage.setItem(
           PROJECTS_STORAGE_KEY,
@@ -1741,10 +1884,96 @@ function initApp() {
   });
 
   function renderAll(isAnimated = false) {
-    renderDayTabs();
+    renderScopeTabs();
     renderTimeline(isAnimated);
     renderEventList();
   }
+
+  function openScopeDialog() {
+    scopeRadioGroup.innerHTML = "";
+    const scopes = {
+      days: "Days",
+      weeks: "Weeks",
+      months: "Months",
+      years: "Years",
+    };
+
+    Object.entries(scopes).forEach(([value, text]) => {
+      const radioDiv = document.createElement("div");
+      radioDiv.classList.add("radio-option");
+
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "scope-type";
+      input.id = `scope-type-${value}`;
+      input.value = value;
+      if (value === currentScope) {
+        input.checked = true;
+      }
+
+      const label = document.createElement("label");
+      label.htmlFor = `scope-type-${value}`;
+      label.textContent = text;
+
+      radioDiv.appendChild(input);
+      radioDiv.appendChild(label);
+      scopeRadioGroup.appendChild(radioDiv);
+    });
+    if (scopeDialog.showModal) scopeDialog.showModal();
+  }
+
+  changeScopeBtn.addEventListener("click", openScopeDialog);
+  cancelScopeBtn.addEventListener("click", () => scopeDialog.close());
+
+  scopeForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const selectedScopeInput = scopeRadioGroup.querySelector(
+      'input[name="scope-type"]:checked',
+    );
+    if (!selectedScopeInput) return;
+
+    const selectedScope = selectedScopeInput.value;
+    if (selectedScope === currentScope) {
+      scopeDialog.close();
+      return;
+    }
+
+    saveCurrentProjectState();
+
+    currentScope = selectedScope;
+
+    let projectToLoad = savedProjects.find(
+      (p) => (p.data.scope || "days") === currentScope,
+    );
+
+    if (projectToLoad) {
+      events = JSON.parse(JSON.stringify(projectToLoad.data.events));
+      maxDays = projectToLoad.data.maxDays;
+      currentProjectTitle = projectToLoad.title;
+      currentProjectId = projectToLoad.id;
+    } else {
+      events = [];
+      maxDays = 1;
+      currentDay = 1;
+      currentProjectTitle = "Untitled Project";
+      currentProjectId = Date.now().toString();
+
+      const newProjectEntry = {
+        id: currentProjectId,
+        title: currentProjectTitle,
+        data: { events: [], maxDays: 1, scope: currentScope },
+      };
+      savedProjects.push(newProjectEntry);
+      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(savedProjects));
+    }
+
+    saveCurrentProjectState();
+    renderProjectTitleDisplay();
+    updateScopeRadioOptions();
+    renderAll();
+    FitTimelineOnPage();
+    scopeDialog.close();
+  });
 
   loadAppSettings();
   loadSavedProjects();
@@ -1754,9 +1983,26 @@ function initApp() {
 
   if (storedCurrentDataText) {
     const storedCurrentData = JSON.parse(storedCurrentDataText);
+
+    if (storedCurrentData.events && storedCurrentData.events.length > 0) {
+      if (
+        storedCurrentData.events[0].startTime !== undefined &&
+        storedCurrentData.events[0].start === undefined
+      ) {
+        storedCurrentData.scope = "days";
+        storedCurrentData.events.forEach((event) => {
+          event.start = event.startTime;
+          event.end = event.endTime;
+          delete event.startTime;
+          delete event.endTime;
+        });
+      }
+    }
+
     const storedProjectId = storedCurrentData.projectId;
     const storedProjectTitle =
       storedCurrentData.projectTitle || "Untitled Project";
+    currentScope = storedCurrentData.scope || "days";
 
     if (
       storedProjectId &&
@@ -1767,6 +2013,7 @@ function initApp() {
       maxDays = projectToLoad.data.maxDays;
       currentProjectTitle = projectToLoad.title;
       currentProjectId = projectToLoad.id;
+      currentScope = projectToLoad.data.scope || "days";
       initialLoadPerformed = true;
     } else if (
       (storedCurrentData.events && storedCurrentData.events.length > 0) ||
@@ -1784,11 +2031,16 @@ function initApp() {
       currentProjectTitle = uniqueTitle;
       events = storedCurrentData.events || [];
       maxDays = storedCurrentData.maxDays || 1;
+      currentScope = storedCurrentData.scope || "days";
 
       const newEntry = {
         id: currentProjectId,
         title: currentProjectTitle,
-        data: { events: JSON.parse(JSON.stringify(events)), maxDays: maxDays },
+        data: {
+          events: JSON.parse(JSON.stringify(events)),
+          maxDays: maxDays,
+          scope: currentScope,
+        },
       };
       savedProjects.push(newEntry);
       localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(savedProjects));
@@ -1797,23 +2049,35 @@ function initApp() {
   }
 
   if (!initialLoadPerformed) {
-    if (savedProjects.length > 0) {
-      const firstProject = savedProjects[0];
-      events = JSON.parse(JSON.stringify(firstProject.data.events));
-      maxDays = firstProject.data.maxDays;
-      currentProjectTitle = firstProject.title;
-      currentProjectId = firstProject.id;
+    let projectToLoad = savedProjects.find(
+      (p) => (p.data.scope || "days") === currentScope,
+    );
+    if (!projectToLoad && savedProjects.length > 0) {
+      projectToLoad = savedProjects[0];
+    }
+
+    if (projectToLoad) {
+      events = JSON.parse(JSON.stringify(projectToLoad.data.events));
+      maxDays = projectToLoad.data.maxDays;
+      currentProjectTitle = projectToLoad.title;
+      currentProjectId = projectToLoad.id;
+      currentScope = projectToLoad.data.scope || "days";
     } else {
       const defaultId = Date.now().toString();
       currentProjectId = defaultId;
       currentProjectTitle = "Untitled Project";
       events = [];
       maxDays = 1;
+      currentScope = "days";
 
       const defaultEntry = {
         id: currentProjectId,
         title: currentProjectTitle,
-        data: { events: JSON.parse(JSON.stringify(events)), maxDays: maxDays },
+        data: {
+          events: JSON.parse(JSON.stringify(events)),
+          maxDays: maxDays,
+          scope: currentScope,
+        },
       };
       savedProjects.push(defaultEntry);
       localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(savedProjects));
@@ -1825,7 +2089,7 @@ function initApp() {
   currentDay = Math.max(1, currentDay);
 
   saveCurrentProjectState();
-  updateDayRadioOptions();
+  updateScopeRadioOptions();
   renderProjectTitleDisplay();
   renderAll();
   FitTimelineOnPage();
@@ -1853,7 +2117,9 @@ function initApp() {
     const activeEl = document.activeElement;
     if (
       activeEl &&
-      (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA")
+      (activeEl.tagName === "INPUT" ||
+        activeEl.tagName === "TEXTAREA" ||
+        activeEl.tagName === "SELECT")
     ) {
       return;
     }

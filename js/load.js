@@ -47,6 +47,22 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const data = await response.json();
 
+      if (data.events && data.events.length > 0) {
+        if (
+          data.events[0].startTime !== undefined &&
+          data.events[0].start === undefined
+        ) {
+          console.log("Old data format detected from URL. Migrating.");
+          data.scope = "days";
+          data.events.forEach((event) => {
+            event.start = event.startTime;
+            event.end = event.endTime;
+            delete event.startTime;
+            delete event.endTime;
+          });
+        }
+      }
+
       if (
         data &&
         typeof data === "object" &&
@@ -62,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
           maxDays: data.maxDays === 0 ? 1 : data.maxDays,
           projectTitle: projectTitle,
           projectId: projectId,
+          scope: data.scope || "days",
         };
 
         localStorage.setItem("eventPlannerData", JSON.stringify(plannerData));

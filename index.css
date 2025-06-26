@@ -32,6 +32,11 @@ body {
     background-color 0.3s ease,
     color 0.3s ease;
 }
+main {
+  width: 100%;
+  max-width: 1500px;
+  margin: auto;
+}
 
 header {
   background-color: var(--sys-color-3);
@@ -646,6 +651,7 @@ dialog::backdrop {
 }
 
 #event-form input[type="text"],
+#event-form input[type="number"],
 #event-form input[type="time"],
 #event-form input[type="color"],
 #event-form select,
@@ -671,6 +677,7 @@ dialog::backdrop {
 }
 
 #event-form input[type="text"]:focus,
+#event-form input[type="number"]:focus,
 #event-form input[type="time"]:focus,
 #event-form input[type="color"]:focus,
 #event-form select:focus,
@@ -1394,6 +1401,7 @@ footer a:hover {
     font-size: 0.85em;
   }
   #event-form input[type="text"],
+  #event-form input[type="number"],
   #event-form input[type="time"],
   #event-form input[type="color"],
   #event-form select,

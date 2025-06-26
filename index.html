@@ -145,6 +145,9 @@
           <button id="fit-timeline-btn" title="Fit Timeline to View">
             Fit
           </button>
+          <button id="change-scope-btn" title="Change Project Scope">
+            Scope
+          </button>
         </div>
       </div>
 
@@ -195,36 +198,100 @@
           <input type="text" id="event-title-input" required />
         </div>
         <div>
-          <label>Day:</label>
+          <label id="event-day-label">Day:</label>
           <div id="event-day-radio-group" class="event-day-radio-group"></div>
         </div>
-        <div
-          style="
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            justify-content: space-between;
-          "
-        >
-          <div style="flex: 1">
-            <label for="event-start-time">Start Time:</label>
-            <input
-              type="time"
-              id="event-start-time"
-              required
-              style="width: 100%"
-            />
-          </div>
-          <div style="flex: 1">
-            <label for="event-end-time">End Time:</label>
-            <input
-              type="time"
-              id="event-end-time"
-              required
-              style="width: 100%"
-            />
+
+        <div id="time-inputs-container">
+          <div
+            style="
+              display: flex;
+              gap: 10px;
+              width: 100%;
+              justify-content: space-between;
+            "
+          >
+            <div style="flex: 1">
+              <label for="event-start-time">Start Time:</label>
+              <input
+                type="time"
+                id="event-start-time"
+                required
+                style="width: 100%"
+              />
+            </div>
+            <div style="flex: 1">
+              <label for="event-end-time">End Time:</label>
+              <input
+                type="time"
+                id="event-end-time"
+                required
+                style="width: 100%"
+              />
+            </div>
           </div>
         </div>
+
+        <div id="day-inputs-container" class="hidden">
+          <div
+            style="
+              display: flex;
+              gap: 10px;
+              width: 100%;
+              justify-content: space-between;
+            "
+          >
+            <div style="flex: 1">
+              <label for="event-start-day">Start Day:</label>
+              <input
+                type="number"
+                id="event-start-day"
+                required
+                style="width: 100%"
+                min="1"
+              />
+            </div>
+            <div style="flex: 1">
+              <label for="event-end-day">End Day:</label>
+              <input
+                type="number"
+                id="event-end-day"
+                required
+                style="width: 100%"
+                min="1"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div id="month-inputs-container" class="hidden">
+          <div
+            style="
+              display: flex;
+              gap: 10px;
+              width: 100%;
+              justify-content: space-between;
+            "
+          >
+            <div style="flex: 1">
+              <label for="event-start-month">Start Month:</label>
+              <select
+                id="event-start-month"
+                required
+                style="width: 100%"
+              ></select>
+            </div>
+            <div style="flex: 1">
+              <label for="event-end-month">End Month:</label>
+              <select
+                id="event-end-month"
+                required
+                style="width: 100%"
+              ></select>
+            </div>
+          </div>
+        </div>
+
         <div>
           <label for="event-color">Color:</label>
           <input type="color" id="event-color" value="#3498db" />
@@ -310,6 +377,24 @@
           <button type="button" id="cancel-new-project-prompt-btn">
             Cancel
           </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="scope-dialog">
+      <h2>Change Project Scope</h2>
+      <form id="scope-form">
+        <p>
+          Changing the scope will switch your workspace. You will see projects
+          saved with the selected scope.
+        </p>
+        <div>
+          <label>Scope Type:</label>
+          <div id="scope-radio-group" class="event-day-radio-group"></div>
+        </div>
+        <div class="dialog-buttons">
+          <button type="submit" id="save-scope-btn">Change</button>
+          <button type="button" id="cancel-scope-btn">Cancel</button>
         </div>
       </form>
     </dialog>
