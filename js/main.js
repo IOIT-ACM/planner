@@ -127,6 +127,7 @@ function initApp() {
   let savedProjects = [];
   const PROJECTS_STORAGE_KEY = "eventPlannerProjects";
   let dialogSelectedProjectId = null;
+  let dialogSelectedScope = "days";
 
   const MONTH_NAMES = [
     "January",
@@ -1667,9 +1668,42 @@ function initApp() {
 
   function openProjectsDialog() {
     dialogSelectedProjectId = null;
+    dialogSelectedScope = currentScope;
+    renderProjectsDialogScopeTabs();
     renderSavedProjectsList();
     loadSelectedProjectBtn.disabled = true;
     if (projectsDialog.showModal) projectsDialog.showModal();
+  }
+
+  function renderProjectsDialogScopeTabs() {
+    const scopeTabsContainer = document.getElementById(
+      "projects-dialog-scope-tabs",
+    );
+    scopeTabsContainer.innerHTML = "";
+    const scopes = {
+      days: "Days",
+      weeks: "Weeks",
+      months: "Months",
+      years: "Years",
+    };
+
+    Object.entries(scopes).forEach(([scope, text]) => {
+      const tab = document.createElement("button");
+      tab.classList.add("day-tab");
+      tab.dataset.scope = scope;
+      tab.textContent = text;
+      if (scope === dialogSelectedScope) {
+        tab.classList.add("active");
+      }
+      tab.addEventListener("click", () => {
+        dialogSelectedScope = scope;
+        dialogSelectedProjectId = null;
+        loadSelectedProjectBtn.disabled = true;
+        renderProjectsDialogScopeTabs();
+        renderSavedProjectsList();
+      });
+      scopeTabsContainer.appendChild(tab);
+    });
   }
 
   newProjectBtn.addEventListener("click", () => {
@@ -1686,6 +1720,7 @@ function initApp() {
 
         historyManager.recordState(currentProjectId, getCurrentState());
 
+        currentScope = dialogSelectedScope;
         events = [];
         maxDays = 1;
         currentDay = 1;
@@ -1709,21 +1744,7 @@ function initApp() {
         updateScopeRadioOptions();
         renderAll();
         FitTimelineOnPage();
-
-        renderSavedProjectsList();
-
-        dialogSelectedProjectId = currentProjectId;
-        loadSelectedProjectBtn.disabled = false;
-
-        const listItem = savedProjectsListUI.querySelector(
-          `li[data-project-id="${currentProjectId}"]`,
-        );
-        if (listItem) {
-          Array.from(savedProjectsListUI.children).forEach((child) =>
-            child.classList.remove("selected", "is-current-workspace"),
-          );
-          listItem.classList.add("selected", "is-current-workspace");
-        }
+        projectsDialog.close();
       },
     );
   });
@@ -1731,7 +1752,7 @@ function initApp() {
   function renderSavedProjectsList() {
     savedProjectsListUI.innerHTML = "";
     const projectsForScope = savedProjects.filter(
-      (p) => (p.data.scope || "days") === currentScope,
+      (p) => (p.data.scope || "days") === dialogSelectedScope,
     );
 
     if (projectsForScope.length === 0) {

@@ -32,11 +32,6 @@ body {
     background-color 0.3s ease,
     color 0.3s ease;
 }
-main {
-  width: 100%;
-  max-width: 1500px;
-  margin: auto;
-}
 
 header {
   background-color: var(--sys-color-3);
@@ -167,7 +162,6 @@ main {
   overflow-x: auto;
   white-space: nowrap;
   padding-bottom: 5px;
-  max-width: calc(100% - 250px);
 }
 
 .day-tab,
@@ -1269,10 +1263,6 @@ footer a:hover {
 }
 
 @media (max-width: 768px) {
-  main {
-    padding: 10px;
-  }
-
   header {
     padding: 10px;
   }

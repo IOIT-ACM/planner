@@ -161,6 +161,26 @@
   border-bottom: none;
 }
 
+#settings-project-list .project-scope-header {
+  background-color: var(--sys-color-2-lighter);
+  color: var(--sys-color-1);
+  font-weight: bold;
+  padding: 8px 15px;
+  margin-top: 10px;
+  border-top: 1px solid var(--sys-color-2);
+  border-bottom: 1px solid var(--sys-color-2);
+  cursor: default;
+}
+
+#settings-project-list .project-scope-header:first-child {
+  margin-top: 0;
+  border-top: none;
+}
+
+#settings-project-list .project-scope-header:hover {
+  background-color: var(--sys-color-2-lighter);
+}
+
 .delete-project-settings-btn {
   background-color: transparent;
   color: var(--sys-color-5);

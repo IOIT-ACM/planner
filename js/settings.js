@@ -235,34 +235,62 @@ document.addEventListener("DOMContentLoaded", () => {
     noProjectsMessage.classList.add("hidden");
     projectListUl.classList.remove("hidden");
 
-    projects.forEach((proj) => {
-      const li = document.createElement("li");
-      li.textContent = proj.title;
+    const scopes = {
+      days: "Days",
+      weeks: "Weeks",
+      months: "Months",
+      years: "Years",
+    };
 
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "Delete";
-      deleteBtn.className = "delete-project-settings-btn";
-      deleteBtn.title = `Delete project: ${proj.title}`;
-      deleteBtn.addEventListener("click", () => {
-        showCustomConfirm(
-          `Are you sure you want to permanently delete the project "<strong>${proj.title}</strong>"? This cannot be undone.`,
-          "Delete Project",
-          () => {
-            const updatedProjects = projects.filter((p) => p.id !== proj.id);
-            localStorage.setItem(PROJECTS_KEY, JSON.stringify(updatedProjects));
-            const currentData = JSON.parse(
-              localStorage.getItem("eventPlannerData"),
+    Object.entries(scopes).forEach(([scopeKey, scopeName]) => {
+      const projectsInScope = projects.filter(
+        (p) => (p.data.scope || "days") === scopeKey,
+      );
+
+      if (projectsInScope.length > 0) {
+        const headerLi = document.createElement("li");
+        headerLi.className = "project-scope-header";
+        headerLi.textContent = `${scopeName} Projects`;
+        projectListUl.appendChild(headerLi);
+
+        projectsInScope.forEach((proj) => {
+          const li = document.createElement("li");
+          li.textContent = proj.title;
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.textContent = "Delete";
+          deleteBtn.className = "delete-project-settings-btn";
+          deleteBtn.title = `Delete project: ${proj.title}`;
+          deleteBtn.addEventListener("click", () => {
+            showCustomConfirm(
+              `Are you sure you want to permanently delete the project "<strong>${proj.title}</strong>"? This cannot be undone.`,
+              "Delete Project",
+              () => {
+                const allProjects =
+                  JSON.parse(localStorage.getItem(PROJECTS_KEY)) || [];
+                const updatedProjects = allProjects.filter(
+                  (p) => p.id !== proj.id,
+                );
+                localStorage.setItem(
+                  PROJECTS_KEY,
+                  JSON.stringify(updatedProjects),
+                );
+
+                const currentData = JSON.parse(
+                  localStorage.getItem("eventPlannerData"),
+                );
+                if (currentData && currentData.projectId === proj.id) {
+                  localStorage.removeItem("eventPlannerData");
+                }
+                renderProjects();
+              },
             );
-            if (currentData && currentData.projectId === proj.id) {
-              localStorage.removeItem("eventPlannerData");
-            }
-            renderProjects();
-          },
-        );
-      });
+          });
 
-      li.appendChild(deleteBtn);
-      projectListUl.appendChild(li);
+          li.appendChild(deleteBtn);
+          projectListUl.appendChild(li);
+        });
+      }
     });
   }
 
