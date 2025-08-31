@@ -144,6 +144,59 @@ function initApp() {
     "December",
   ];
 
+  function assignRowsToEvents(eventArray) {
+    const eventsByDay = {};
+    eventArray.forEach((e) => {
+      if (e.row === undefined) {
+        if (!eventsByDay[e.day]) eventsByDay[e.day] = [];
+        eventsByDay[e.day].push(e);
+      }
+    });
+
+    for (const day in eventsByDay) {
+      const dayEvents = eventsByDay[day];
+      dayEvents.sort((a, b) => parseUnit(a.start) - parseUnit(b.start));
+      const lanes = [];
+      dayEvents.forEach((event) => {
+        const startUnit = parseUnit(event.start);
+        const endUnit = getInterpretedEndUnit(event.start, event.end);
+        let placed = false;
+        for (let i = 0; i < lanes.length; i++) {
+          if (lanes[i] <= startUnit) {
+            event.row = i;
+            lanes[i] = endUnit;
+            placed = true;
+            break;
+          }
+        }
+        if (!placed) {
+          event.row = lanes.length;
+          lanes.push(endUnit);
+        }
+      });
+    }
+  }
+
+  function findFirstAvailableRow(dayEvents, startUnit, endUnit) {
+    const rowsInUse = new Array(dayEvents.length + 1).fill(false);
+    const overlappingEvents = dayEvents.filter((e) => {
+      const existingStart = parseUnit(e.start);
+      const existingEnd = getInterpretedEndUnit(e.start, e.end);
+      return (
+        Math.max(startUnit, existingStart) < Math.min(endUnit, existingEnd)
+      );
+    });
+
+    overlappingEvents.forEach((e) => {
+      if (e.row !== undefined) {
+        rowsInUse[e.row] = true;
+      }
+    });
+
+    const availableRow = rowsInUse.indexOf(false);
+    return availableRow === -1 ? dayEvents.length : availableRow;
+  }
+
   function getScopeLabel(scope, capitalized = false) {
     const s = scope || currentScope;
     let label = "Day";
@@ -581,13 +634,11 @@ function initApp() {
   }
 
   function renderTimelineEvents(isAnimated = false) {
-    const dayEvents = events
-      .filter((event) => event.day === currentDay)
-      .sort((a, b) => parseUnit(a.start) - parseUnit(b.start));
+    const dayEvents = events.filter((event) => event.day === currentDay);
 
-    const lanes = [];
     const eventLayouts = new Map();
     const config = getTimelineConfig();
+    let maxRow = -1;
 
     dayEvents.forEach((eventData) => {
       const startUnit = parseUnit(eventData.start);
@@ -616,20 +667,11 @@ function initApp() {
 
       if (eventWidth < MIN_EVENT_WIDTH_PX) eventWidth = MIN_EVENT_WIDTH_PX;
 
-      let eventTop = 0;
-      let placed = false;
-      for (let i = 0; i < lanes.length; i++) {
-        if (lanes[i] <= startUnit) {
-          eventTop = i * (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN);
-          lanes[i] = endUnit;
-          placed = true;
-          break;
-        }
+      const eventRow = eventData.row || 0;
+      if (eventRow > maxRow) {
+        maxRow = eventRow;
       }
-      if (!placed) {
-        eventTop = lanes.length * (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN);
-        lanes.push(endUnit);
-      }
+      const eventTop = eventRow * (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN);
 
       eventLayouts.set(eventData.id, {
         left: `${eventStartOffset}px`,
@@ -642,13 +684,9 @@ function initApp() {
     });
 
     const maxBottom =
-      lanes.length * (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN) +
+      (maxRow + 1) * (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN) +
       EVENT_BLOCK_MARGIN;
-    timelineEventsContainer.style.height = `${Math.max(
-      maxBottom,
-      100,
-      EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN,
-    )}px`;
+    timelineEventsContainer.style.height = `${Math.max(maxBottom, 100)}px`;
 
     const existingBlocks = new Map(
       Array.from(timelineEventsContainer.querySelectorAll(".event-block")).map(
@@ -825,7 +863,6 @@ function initApp() {
     dayInputsContainer.classList.add("hidden");
     monthInputsContainer.classList.add("hidden");
 
-    // Reset all conditional inputs to not be required
     eventStartTimeInput.required = false;
     eventEndTimeInput.required = false;
     eventStartDayInput.required = false;
@@ -983,15 +1020,34 @@ function initApp() {
 
     historyManager.recordState(currentProjectId, getCurrentState());
 
+    const eventDay = parseInt(selectedDayRadio.value);
+    let eventRow;
+
+    if (id) {
+      const oldEvent = events.find((e) => e.id === id);
+      if (oldEvent.day !== eventDay) {
+        const dayEvents = events.filter(
+          (e) => e.day === eventDay && e.id !== id,
+        );
+        eventRow = findFirstAvailableRow(dayEvents, startUnit, endUnit);
+      } else {
+        eventRow = oldEvent.row;
+      }
+    } else {
+      const dayEvents = events.filter((e) => e.day === eventDay);
+      eventRow = findFirstAvailableRow(dayEvents, startUnit, endUnit);
+    }
+
     const eventData = {
       id: id || Date.now().toString(),
       title: title,
-      day: parseInt(selectedDayRadio.value),
+      day: eventDay,
       start: startValue,
       end: endValue,
       color: eventColorInput.value,
       location: eventLocationInput.value,
       notes: eventNotesInput.value,
+      row: eventRow,
     };
 
     if (id) {
@@ -1070,15 +1126,20 @@ function initApp() {
 
     historyManager.recordState(currentProjectId, getCurrentState());
 
+    const eventDay = parseInt(selectedDayRadio.value);
+    const dayEvents = events.filter((e) => e.day === eventDay);
+    const newRow = findFirstAvailableRow(dayEvents, startUnit, endUnit);
+
     const newEvent = {
       id: Date.now().toString(),
       title: eventTitleInput.value,
-      day: parseInt(selectedDayRadio.value),
+      day: eventDay,
       start: startValue,
       end: endValue,
       color: eventColorInput.value,
       location: eventLocationInput.value,
       notes: eventNotesInput.value,
+      row: newRow,
     };
 
     events.push(newEvent);
@@ -1281,6 +1342,16 @@ function initApp() {
       const maxLeftPx = timelineContainer.clientWidth - eventWidthPx;
       newLeftPx = Math.min(newLeftPx, maxLeftPx);
       eventBlock.style.left = `${newLeftPx}px`;
+
+      const timelineEventsRect =
+        timelineEventsContainer.getBoundingClientRect();
+      const yInTimeline = e.clientY - timelineEventsRect.top;
+      const targetRow = Math.max(
+        0,
+        Math.floor(yInTimeline / (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN)),
+      );
+      const newTopPx = targetRow * (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN);
+      eventBlock.style.top = `${newTopPx}px`;
     } else if (resizingEvent) {
       const eventBlock = timelineEventsContainer.querySelector(
         `.event-block[data-event-id="${resizingEvent.id}"]`,
@@ -1337,6 +1408,8 @@ function initApp() {
       if (ghostEventBlock) {
         const finalRectLeft = parseFloat(ghostEventBlock.style.left);
         const finalWidth = parseFloat(ghostEventBlock.style.width);
+        const ghostTopPx =
+          parseFloat(ghostEventBlock.style.top) || newEventStartPos.y;
 
         if (ghostEventBlock.parentElement) {
           timelineEventsContainer.removeChild(ghostEventBlock);
@@ -1368,22 +1441,28 @@ function initApp() {
         endUnit = Math.min(config.totalUnits, endUnit);
         if (startUnit >= endUnit) return;
 
-        openAddDialog();
-        switch (currentScope) {
-          case "weeks":
-          case "months":
-            eventStartDayInput.value = formatUnit(startUnit);
-            eventEndDayInput.value = formatUnit(endUnit);
-            break;
-          case "years":
-            eventStartMonthSelect.value = formatUnit(startUnit);
-            eventEndMonthSelect.value = formatUnit(endUnit);
-            break;
-          default:
-            eventStartTimeInput.value = formatUnit(startUnit);
-            eventEndTimeInput.value = formatUnit(endUnit);
-            break;
-        }
+        const newEventRow = Math.round(
+          ghostTopPx / (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN),
+        );
+
+        historyManager.recordState(currentProjectId, getCurrentState());
+
+        const newEvent = {
+          id: Date.now().toString(),
+          title: "New Event",
+          day: currentDay,
+          start: formatUnit(startUnit),
+          end: formatUnit(endUnit),
+          color: "#dda15e",
+          location: "",
+          notes: "",
+          row: newEventRow,
+        };
+
+        events.push(newEvent);
+        saveCurrentProjectState();
+        renderTimeline(true);
+        renderEventList();
       }
       return;
     }
@@ -1404,17 +1483,66 @@ function initApp() {
           } else {
             historyManager.recordState(currentProjectId, getCurrentState());
             const pixelsPerUnit =
-              currentScope === "days" ? timelineScale / 60 : timelineScale;
+                currentScope === "days" ? timelineScale / 60 : timelineScale;
             const startOffset = currentScope === "days" ? 0 : 1;
             const newLeftPx = parseFloat(eventBlock.style.left);
             let newStartUnit = snapToUnit(
-              newLeftPx / pixelsPerUnit + startOffset,
+                newLeftPx / pixelsPerUnit + startOffset,
             );
             const duration =
-              parseUnit(draggingEvent.end) - parseUnit(draggingEvent.start);
+                parseUnit(draggingEvent.end) - parseUnit(draggingEvent.start);
             let newEndUnit = newStartUnit + duration;
             draggingEvent.start = formatUnit(newStartUnit);
             draggingEvent.end = formatUnit(newEndUnit);
+
+            const timelineEventsRect =
+                timelineEventsContainer.getBoundingClientRect();
+            const yInTimeline = e.clientY - timelineEventsRect.top;
+            const finalRow = Math.max(
+                0,
+                Math.floor(
+                    yInTimeline / (EVENT_BLOCK_HEIGHT + EVENT_BLOCK_MARGIN),
+                ),
+            );
+            draggingEvent.row = finalRow;
+
+            const draggedStartUnit = parseUnit(draggingEvent.start);
+            const draggedEndUnit = getInterpretedEndUnit(draggingEvent.start, draggingEvent.end);
+
+            const dayEvents = events.filter(e => e.day === draggingEvent.day && e.id !== draggingEvent.id);
+
+            const collidingEvents = dayEvents.filter(e => {
+                const eventStart = parseUnit(e.start);
+                const eventEnd = getInterpretedEndUnit(e.start, e.end);
+                return e.row === draggingEvent.row && (Math.max(draggedStartUnit, eventStart) < Math.min(draggedEndUnit, eventEnd));
+            });
+
+            if (collidingEvents.length > 0) {
+                const findAndAssignNewRow = (eventToMove) => {
+                    const eventStart = parseUnit(eventToMove.start);
+                    const eventEnd = getInterpretedEndUnit(eventToMove.start, eventToMove.end);
+                    let newRow = 0;
+                    
+                    while (true) {
+                        const eventsInRow = events.filter(e => e.day === eventToMove.day && e.id !== eventToMove.id && e.row === newRow);
+                        const hasCollisionInRow = eventsInRow.some(e => {
+                            const otherStart = parseUnit(e.start);
+                            const otherEnd = getInterpretedEndUnit(e.start, e.end);
+                            return Math.max(eventStart, otherStart) < Math.min(eventEnd, otherEnd);
+                        });
+                        
+                        if (!hasCollisionInRow) {
+                            eventToMove.row = newRow;
+                            break;
+                        }
+                        newRow++;
+                    }
+                };
+
+                collidingEvents.forEach(collidingEvent => {
+                    findAndAssignNewRow(collidingEvent);
+                });
+            }
           }
         } else if (resizingEvent) {
           historyManager.recordState(currentProjectId, getCurrentState());
@@ -1512,6 +1640,7 @@ function initApp() {
   }
 
   function processAndLoadProjectData(importedData) {
+    assignRowsToEvents(importedData.events);
     const importedTitle = importedData.projectTitle || "Imported Project";
     const existingProject = savedProjects.find(
       (p) => p.title === importedTitle,
@@ -1587,7 +1716,7 @@ function initApp() {
           showCustomAlert("Invalid file format.", "Import Error");
           return;
         }
-
+        assignRowsToEvents(importedData.events);
         processAndLoadProjectData(importedData);
         closeMobileSidebar();
       } catch (error) {
@@ -2059,6 +2188,7 @@ function initApp() {
         });
       }
     }
+    assignRowsToEvents(storedCurrentData.events);
 
     const storedProjectId = storedCurrentData.projectId;
     const storedProjectTitle =
